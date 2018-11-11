@@ -15,10 +15,12 @@ class Node:
     f=0
     x=0
     y=0
+    theta=0
     nodeNum=0 #for visibility graph only
-    def __init__(self,nodeX,nodeY,nodeParent,heur):
+    def __init__(self,nodeX,nodeY,nodeTheta,nodeParent,heur):
         self.x=nodeX
         self.y=nodeY
+        self.theta=nodeTheta
         self.h=heur
         if nodeParent is not None:
             self.parent=nodeParent

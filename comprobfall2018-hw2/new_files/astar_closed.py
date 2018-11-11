@@ -9,13 +9,13 @@ class Closed:
     closedDict=None;
     """Inserts a given node into the closed list"""
     def insert(self,node):
-        key=str(node.x)+'_'+str(node.y)
+        key=str(node.x)+'_'+str(node.y) + '_' + str(node.theta)
         self.closedDict[key]=node
         
     """Checks whether a given node has been inserted into the closed list 
        (returns true) or not (returns false)"""    
-    def check(self,x,y):#node):
-        key=str(x)+'_'+str(y)
+    def check(self,x,y,theta):#node):
+        key=str(x)+'_'+str(y) + '_' + str(theta)
         if key in self.closedDict:
             return True
         else:
