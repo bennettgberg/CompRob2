@@ -12,14 +12,14 @@ def heur(startx, starty, goalx, goaly, FDA):
     return math.sqrt((startx-goalx)**2 + (starty-goaly)**2)
 
 #function to run the A* search algorithm from vertex start to vertex goal.
-def runAStar(Start, goal, grid, gweight):
+def runAStar(Start, goal, grid):
     #start with an empty fringe.
     fringe = fring.Fringe()
     Closed = closed.Closed()
   #make sure we're starting at a real grid vertex.
     startx = round(Start.x / grid.xstep)*grid.xstep
     starty = round(Start.y / grid.ystep)*grid.ystep
-    heu = heur(startx, starty, goal[0], goal[1], FDA)
+    heu = heur(startx, starty, goal[0], goal[1])
     start = anode.Node(startx, starty, None, heu)
     start.parent = None #start
     start.h = heu 
@@ -34,33 +34,22 @@ def runAStar(Start, goal, grid, gweight):
         Closed.insert(s)
 # Now go to neighbors of s, check if visited or in fringe.
         updated = False
-        for dx in range(-1, 2):
-            for dy in range(-1, 2):
-                x = s.x + dx*grid.xstep
-                y = s.y + dy*grid.ystep
-                if grid.checkObstacle(s.x, s.y, x, y):
-                    continue
-                if not Closed.check(x,y):
-                    if not fringe.check(x,y):
-                        n = anode.Node(x, y, s, heur(x, y, goal[0], goal[1], FDA))
-                        fringe.insert(n)
-                  #update n so its parent is s.
-                    if FDA:
-                        if fringe.FDAupdate(s, x, y, grid, gweight):
-                            updated = True
-                    elif fringe.update(s, x, y, gweight):
-                        updated = True
+        for nn in s.nearest_neighbors():
+            x = nn.x
+            y = nn.y
+            if grid.checkObstacle(s.x, s.y, x, y):
+                continue
+            if not Closed.check(x,y):
+                if not fringe.check(x,y):
+                    n = anode.Node(x, y, s, heur(x, y, goal[0], goal[1]))
+                    fringe.insert(n)
+              #update n so its parent is s.
+                if fringe.update(s, x, y):
+                    updated = True
         if updated:
             fringe.updateFringeHeap()
 #if haven't found the goal by the time the fringe is all empty, there is no valid path to the goal.
     return None
-
-class Point():
-    def __init__(self, x, y, z):
-        '''Defines x and y variables'''
-        self.x = x
-        self.y = y
-        self.z = z
 
 def main():
     #create grid, define barriers, etc. 
