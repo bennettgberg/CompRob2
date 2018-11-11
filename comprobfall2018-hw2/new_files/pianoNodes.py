@@ -3,11 +3,6 @@ import numpy as np
 
 class pianoNode:
     parent=None
-    h=0
-    f=0
-    g=0
-    neighbors=[]
-    distances=[]
     #constructor: takes a tuple with (x,y,z), a tuple of quaternion coordinates
     def __init__(self,xyz,quatCoords):
         self.xyz=xyz
