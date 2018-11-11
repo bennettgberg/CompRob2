@@ -7,23 +7,26 @@ import matplotlib.pyplot as plt
 import numpy as np
 import matplotlib
 import sys
+import PRM
 
 #return heuristic of start while searching for goal (given by Equation 1 in assignment instructions). Or straight-line distance if running FDA*.
+#CHANGE THIS TO USE CORRECT DISTANCE FUNCTION LATER
 def heur(startx, starty, starttheta, goalx, goaly, goaltheta):
     return math.sqrt((startx-goalx)**2 + (starty-goaly)**2 + (starttheta-goaltheta)**2)
 
 #function to run the A* search algorithm from vertex start to vertex goal.
-def runAStar(Start, goal, grid):
+def runAStar(Start, goal, grid, nodes, adjacency, distances):
     #start with an empty fringe.
     fringe = fring.Fringe()
     Closed = closed.Closed()
   #make sure we're starting at a real grid vertex.
-    startx = round(Start.x / grid.xstep)*grid.xstep
-    starty = round(Start.y / grid.ystep)*grid.ystep
-    heu = heur(startx, starty, 0, goal[0], goal[1], 0)
-    start = anode.Node(startx, starty, None, heu)
+#    startx = round(Start.x / grid.xstep)*grid.xstep
+#    starty = round(Start.y / grid.ystep)*grid.ystep
+#    heu = heur(startx, starty, 0, goal[0], goal[1], 0)
+  #  start = anode.Node(startx, starty, 0, None, heu)
+    start = anode.Node(nodes[0][0], nodes[0][1], 0, None, 0) #CHANGE TO CLOSEST NODE TO START POSITION!!!!!!!!!  
     start.parent = None #start
-    start.h = heu 
+    #start.h = heu 
     # g is 0 for the start
     start.f = start.h + 0
     fringe.insert(start) 
@@ -35,18 +38,21 @@ def runAStar(Start, goal, grid):
         Closed.insert(s)
 # Now go to neighbors of s, check if visited or in fringe.
         updated = False
-        for nn in s.get_knn(3): #parameter is number of nearest neighbors (3)
-            x = nn.x
-            y = nn.y
-            theta = nn.theta
+#        print adjacency[0]
+#        print distances[0]
+#        print nodes[0]
+        for ni in adjacency[0]: #get k nearest neighbors of s: FIX THIS!!!!!(Which index for adjacency???)!
+            x = nodes[ni][0] #neighbor's x value
+            y = nodes[ni][1] #neighbor's y value
+        #    theta = nn.theta #does neighbor have theta value?
             if grid.checkObstacle(s.x, s.y, x, y):
                 continue
-            if not Closed.check(x, y, theta):
-                if not fringe.check(x,y,theta):
-                    n = anode.Node(x, y, theta, s, heur(x, y, theta, goal[0], goal[1], goal[2]))
+            if not Closed.check(x, y, 0): #, theta):
+                if not fringe.check(x,y,0): #theta):
+                    n = anode.Node(x, y, 0, s, heur(x, y, 0, goal[0], goal[1], goal[2]))
                     fringe.insert(n)
               #update n so its parent is s.
-                if fringe.update(s, x, y, theta):
+                if fringe.update(s, x, y, 0, 2):# distances[0][ni]):  #What is correct first index for distances?????????????????!!!!!!!!!!
                     updated = True
         if updated:
             fringe.updateFringeHeap()
@@ -71,20 +77,19 @@ def main():
             ros = True
     #runAStar will return goal node if there's a path to goal from start
     if not ros:
-        filename = "~/CompRob/ass1/comprobfall2018-hw1-master/turtlebot_maps/map_" + str(mapn) + ".txt"
+        filename = "map_" + str(mapn) + ".txt"
     else: filename = "/home/steven/catkin_ws/src/turtlebot_maps/map_" + str(mapn) + ".txt"
     grid = astar_grid.astarGrid(filename)
 #    [l.set_visible(False) for (i,l) in enumerate(plt.subplots()[1].xaxis.get_ticklabels()) if i % 4 != 0]
-    plt.xlim(grid.xmin, grid.xmax+grid.xstep)
-    plt.ylim(grid.ymin, grid.ymax+grid.ystep)
-    plt.xticks(np.arange(grid.xmin, grid.xmax, grid.xstep))
-    plt.yticks(np.arange(grid.ymin, grid.ymax, grid.ystep))
+    plt.xlim(0, 5)
+    plt.ylim(0, 5)
+    plt.xticks(np.arange(0, 5, 1))
+    plt.yticks(np.arange(0, 5, 1))
     plt.grid(b=True)
-    for key, obst in grid.obstacleDict.iteritems():
-        xes = [obst[0], obst[0], obst[0]+grid.xstep, obst[0]+grid.xstep]
-        yes = [obst[1], obst[1]+grid.ystep, obst[1]+grid.ystep, obst[1]] 
-        plt.fill(xes, yes, 'blue')
-    apath = runAStar(grid.Start(num), grid.Goal(num), grid, fda, gweight)
+    twoDnodes, twoDadjacency, twoDdistances = PRM.PRM2D(15)
+    Start = anode.Node(1.1, 2.2, 0, None, 0)
+    Goal = (3.3, 4.4, 0)
+    apath = runAStar(Start, Goal, grid, twoDnodes, twoDadjacency, twoDdistances)
     points = []
     if not apath == None:
         #Now just follow the parent of goal in reverse to find the correct path.

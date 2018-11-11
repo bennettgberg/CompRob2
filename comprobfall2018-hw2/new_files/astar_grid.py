@@ -24,7 +24,7 @@ def str_to_xy(string):
     w = string   
     w = w[1:-1]
     xy = w.split(',')
-    (x, y) = (float(xy[0]), float(xy[1]), 0)
+    (x, y) = (float(xy[0]), float(xy[1]))
     return (x, y)
 
 #find line connecting two points, in y=mx+b form (also keep endpoints).
@@ -65,11 +65,11 @@ class astarGrid:
             print("Error! File should only contain 4 corners of the grid.")
             sys.exit()
         """insert obstacles surrounding the grid."""
-        (x1, y1, theta) = str_to_xy(words[0])
+        (x1, y1 ) = str_to_xy(words[0])
         self.xmax = x1
         self.ymax = y1
-        (x2, y2, theta) = str_to_xy(words[1])
-        (x3, y3, theta) = str_to_xy(words[2])
+        (x2, y2 ) = str_to_xy(words[1])
+        (x3, y3 ) = str_to_xy(words[2])
         self.xmin = x3
         self.ymin = y3
         self.xstep = xstep  #(self.xmax-self.xmin) / float(nx)
@@ -84,7 +84,7 @@ class astarGrid:
             xy = str(x) + '_' + str(y2)
             self.obstacleDict[xy] = (x, y2)
             x = x + self.xstep
-        (x4, y4, theta) = str_to_xy(words[3])
+        (x4, y4 ) = str_to_xy(words[3])
         y = self.ymin
         while y <= self.ymax:                                             
             xy = str(x3) + '_' + str(y)
@@ -103,11 +103,11 @@ class astarGrid:
             words = line.split()
             p = len(words)
             for i in range(0, p-1):
-                (x1, y1, theta) = str_to_xy(words[i])
-                (x2, y2, theta) = str_to_xy(words[i+1])
+                (x1, y1 ) = str_to_xy(words[i])
+                (x2, y2 ) = str_to_xy(words[i+1])
                 edges.append(f(x1, y1, x2, y2))
-            (x1, y1, theta) = str_to_xy(words[p-1])
-            (x2, y2, theta) = str_to_xy(words[0])
+            (x1, y1 ) = str_to_xy(words[p-1])
+            (x2, y2 ) = str_to_xy(words[0])
             edges.append(f(x1, y1, x2, y2))
             line = mapfile.readline()
 
