@@ -192,7 +192,7 @@ class astarGrid:
         goalx = self.goals[num][0]
         goaly = self.goals[num][1]
         heur=math.sqrt(2)*min(abs(x-goalx), abs(y-goaly)) + max(abs(x-goalx), abs(y-goaly)) - min(abs(x-goalx), abs(y-goaly))
-        return astar_node.Node(x,y,None,heur)
+        return astar_node.Node(x,y,0,None,heur)
     
     """Returns true if an obstacle is present, False if the path is free"""
     #Note: obstacles are represented by the lower left vertex of their grid cell!

@@ -24,6 +24,7 @@ def runAStar(Start, goal, grid, nodes, adjacency, distances):
 #    starty = round(Start.y / grid.ystep)*grid.ystep
 #    heu = heur(startx, starty, 0, goal[0], goal[1], 0)
   #  start = anode.Node(startx, starty, 0, None, heu)
+  #NEED TO ADD START AND GOAL TO NODELISTS. 
     start = anode.Node(nodes[0][0], nodes[0][1], 0, None, 0) #CHANGE TO CLOSEST NODE TO START POSITION!!!!!!!!!  
     start.parent = None #start
     #start.h = heu 
@@ -88,17 +89,14 @@ def main():
         filename = "map_" + str(mapn) + ".txt"
     else: filename = "/home/steven/catkin_ws/src/turtlebot_maps/map_" + str(mapn) + ".txt"
     grid = astar_grid.astarGrid(filename)
-#    [l.set_visible(False) for (i,l) in enumerate(plt.subplots()[1].xaxis.get_ticklabels()) if i % 4 != 0]
     plt.xlim(0, 5)
     plt.ylim(0, 5)
     plt.xticks(np.arange(0, 5, 1))
     plt.yticks(np.arange(0, 5, 1))
     plt.grid(b=True)
     twoDnodes, twoDadjacency, twoDdistances = PRM.PRM2D(50)
-    for i in range(len(twoDnodes)):
-        plt.plot(twoDnodes[i], 'b.')
     Start = anode.Node(1.1, 2.2, 0, None, 0)
-    Goal = (3.3, 4.4, 0)
+    Goal = (twoDnodes[29][0], twoDnodes[29][1], 0)
     apath = runAStar(Start, Goal, grid, twoDnodes, twoDadjacency, twoDdistances)
     points = []
     if not apath == None:
@@ -130,6 +128,8 @@ def main():
     else:
         print("Error! No path found!")
     plt.show()
+   # PRM.PRM2Dshow(twoDnodes, twoDadjacency, twoDdistances)
+   # plt.show()
     if ros:
         for p in points:
             print "Sending (%s,%s)"%(p.x, p.y)

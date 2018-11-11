@@ -31,6 +31,7 @@ def PRM2D(N):
     twoDdistances=[]
     vertices=[(1,1),(1,2),(2,2),(2,1)]
     poly1=geo.Polygon(vertices)
+  #  plt.plot(poly1)
     for i in range(0,N):
         x=-1
         y=-1
@@ -39,6 +40,7 @@ def PRM2D(N):
         #gets a valid X and Y
         while(x<0 or poly1.contains(geo.Point(x,y))):
             (x,y)=sample2D(5,5)
+        plt.plot(x,y,'r.')
         addNode((x,y))
         k=3
         #case: fewer than k nodes, don't check k or it will crash
