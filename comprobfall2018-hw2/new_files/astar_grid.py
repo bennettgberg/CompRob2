@@ -226,9 +226,9 @@ class astarGrid:
         if xy in self.obstacleDict:
             return True
 
-        if endx > self.xmax:
-            print "No obstacle hmmm startx {} starty {} endx {} endy {}".format(startx, starty, endx, endy)
-            print self.obstacleDict
+        #if endx > self.xmax:
+        #    print "No obstacle hmmm startx {} starty {} endx {} endy {}".format(startx, starty, endx, endy)
+        #    print self.obstacleDict
 #            sys.exit()
         return False
 

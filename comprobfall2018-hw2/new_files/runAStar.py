@@ -41,9 +41,16 @@ def runAStar(Start, goal, grid, nodes, adjacency, distances):
 #        print adjacency[0]
 #        print distances[0]
 #        print nodes[0]
-        for ni in adjacency[0]: #get k nearest neighbors of s: FIX THIS!!!!!(Which index for adjacency???)!
-            x = nodes[ni][0] #neighbor's x value
-            y = nodes[ni][1] #neighbor's y value
+        #find index of s
+        s_ind = -1
+        for ind in range(len(nodes)):
+            if nodes[ind][0] == s.x and nodes[ind][1] == s.y:
+                s_ind = ind
+                break
+        if s_ind == -1: sys.exit("Error: s_ind not found! s={}".format(str(s)))
+        for ni in range(len(adjacency[s_ind])): #get k nearest neighbors of s: FIX THIS!!!!!(Which index for adjacency???)!
+            x = nodes[adjacency[s_ind][ni]][0] #neighbor's x value
+            y = nodes[adjacency[s_ind][ni]][1] #neighbor's y value
         #    theta = nn.theta #does neighbor have theta value?
             if grid.checkObstacle(s.x, s.y, x, y):
                 continue
@@ -52,7 +59,8 @@ def runAStar(Start, goal, grid, nodes, adjacency, distances):
                     n = anode.Node(x, y, 0, s, heur(x, y, 0, goal[0], goal[1], goal[2]))
                     fringe.insert(n)
               #update n so its parent is s.
-                if fringe.update(s, x, y, 0, 2):# distances[0][ni]):  #What is correct first index for distances?????????????????!!!!!!!!!!
+              #  print "s: {} s_ind: {} nodes[s_ind]: {} distances[s_ind]: {} adjacency[s_ind]: {}".format(s, s_ind, nodes[s_ind], distances[s_ind], adjacency[s_ind])
+                if fringe.update(s, x, y, 0, distances[s_ind][ni]):  #What is correct first index for distances?????????????????!!!!!!!!!!
                     updated = True
         if updated:
             fringe.updateFringeHeap()
@@ -86,7 +94,9 @@ def main():
     plt.xticks(np.arange(0, 5, 1))
     plt.yticks(np.arange(0, 5, 1))
     plt.grid(b=True)
-    twoDnodes, twoDadjacency, twoDdistances = PRM.PRM2D(15)
+    twoDnodes, twoDadjacency, twoDdistances = PRM.PRM2D(50)
+    for i in range(len(twoDnodes)):
+        plt.plot(twoDnodes[i], 'b.')
     Start = anode.Node(1.1, 2.2, 0, None, 0)
     Goal = (3.3, 4.4, 0)
     apath = runAStar(Start, Goal, grid, twoDnodes, twoDadjacency, twoDdistances)
