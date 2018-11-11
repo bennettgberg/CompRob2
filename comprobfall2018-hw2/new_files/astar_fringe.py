@@ -26,52 +26,30 @@ class Fringe:
 
     """Inserts node into fringe heap and open dictionary"""
     def insert(self,node):
-        key=str(node.x)+'_'+str(node.y)
+        key=str(node.x)+'_'+str(node.y) + '_' + str(node.theta)
         heapKey=node.f
         self.fringeDict[key]=node
         heapq.heappush(self.fringeHeap,(heapKey,node))
         
-        
     """Uses the open dictionary to update nodes in the fringe heap/dict
         returns true if it updated, false if it remained the same"""    
-    def update(self,parent,x,y, gweight):
-        key=str(x)+'_'+str(y)
-        updateNode=self.fringeDict[key]
-        newG=parent.g + math.sqrt((parent.x-x)**2+(parent.y-y)**2) 
-        newF=gweight * newG + (1 - gweight) * updateNode.h 
-        if newF<updateNode.f:
-            updateNode.g=newG
-            updateNode.f=newF
+    def update(self,parent,x,y, theta):
+        key = str(x)+'_'+str(y) + '_' + str(theta)
+        updateNode = self.fringeDict[key]
+        newG = parent.g + math.sqrt((parent.x-x)**2+(parent.y-y)**2 + (parent.theta-theta)**2) 
+        newF = newG + updateNode.h 
+        if newF < updateNode.f:
+            updateNode.g = newG
+            updateNode.f = newF
             updateNode.parent = parent
             return True            
         else:
             return False
      
-        
-    def FDAupdate(self,s,x,y,grid, gweight):   
-        key=str(x)+'_'+str(y)
-        updateNode=self.fringeDict[key]
-        if s.parent is None:
-            return False
-        parent=s.parent
-        updated = False 
-        while grid.LineOfSight(parent.x, parent.y, updateNode.x, updateNode.y) and grid.LineOfSight(updateNode.x, updateNode.y, parent.x, parent.y):
-            newG = parent.g+math.sqrt((updateNode.x-parent.x)**2 + (updateNode.y-parent.y)**2) 
-            newF = gweight * newG + (1 - gweight) * updateNode.h
-            if newF < updateNode.f:
-                updateNode.g = newG 
-                updateNode.f = newF
-                updateNode.parent = parent
-                updated = True
-            parent = parent.parent
-            if parent == None: break 
-        if not updated: updated = self.update(s, x, y, gweight)
-        return updated
-
     """Checks to see if node for this x,y coordinate is present: 
         if it is, returns True, returns False otherwise"""
-    def check(self,x,y):
-        key=str(x)+'_'+str(y)
+    def check(self,x,y,theta):
+        key=str(x)+'_'+str(y) + '_' + str(theta)
         if key in self.fringeDict:
             return True
         else:
@@ -84,6 +62,6 @@ class Fringe:
     """returns the top node in the heap, removes it from the open list and heap"""    
     def fringePop(self):
         tempNode=heapq.heappop(self.fringeHeap)
-        key=key=str(tempNode[1].x)+'_'+str(tempNode[1].y)
+        key=key=str(tempNode[1].x)+'_'+str(tempNode[1].y) + '_' + str(tempNode[1].theta)
         del self.fringeDict[key]
         return tempNode[1]

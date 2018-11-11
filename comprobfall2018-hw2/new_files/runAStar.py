@@ -1,6 +1,7 @@
 import astar_fringe as fring
 import astar_node as anode
 import astar_closed as closed
+import astar_grid
 import math
 import matplotlib.pyplot as plt
 import numpy as np
@@ -8,8 +9,8 @@ import matplotlib
 import sys
 
 #return heuristic of start while searching for goal (given by Equation 1 in assignment instructions). Or straight-line distance if running FDA*.
-def heur(startx, starty, goalx, goaly, FDA):
-    return math.sqrt((startx-goalx)**2 + (starty-goaly)**2)
+def heur(startx, starty, starttheta, goalx, goaly, goaltheta):
+    return math.sqrt((startx-goalx)**2 + (starty-goaly)**2 + (starttheta-goaltheta)**2)
 
 #function to run the A* search algorithm from vertex start to vertex goal.
 def runAStar(Start, goal, grid):
@@ -19,7 +20,7 @@ def runAStar(Start, goal, grid):
   #make sure we're starting at a real grid vertex.
     startx = round(Start.x / grid.xstep)*grid.xstep
     starty = round(Start.y / grid.ystep)*grid.ystep
-    heu = heur(startx, starty, goal[0], goal[1])
+    heu = heur(startx, starty, 0, goal[0], goal[1], 0)
     start = anode.Node(startx, starty, None, heu)
     start.parent = None #start
     start.h = heu 
@@ -29,22 +30,23 @@ def runAStar(Start, goal, grid):
 
     while not fringe.empty():
         s = fringe.fringePop()
-        if s.x == goal[0] and s.y == goal[1]:
+        if s.x == goal[0] and s.y == goal[1] and s.theta == goal[2]:
             return s
         Closed.insert(s)
 # Now go to neighbors of s, check if visited or in fringe.
         updated = False
-        for nn in s.nearest_neighbors():
+        for nn in s.get_knn(3): #parameter is number of nearest neighbors (3)
             x = nn.x
             y = nn.y
+            theta = nn.theta
             if grid.checkObstacle(s.x, s.y, x, y):
                 continue
-            if not Closed.check(x,y):
-                if not fringe.check(x,y):
-                    n = anode.Node(x, y, s, heur(x, y, goal[0], goal[1]))
+            if not Closed.check(x, y, theta):
+                if not fringe.check(x,y,theta):
+                    n = anode.Node(x, y, theta, s, heur(x, y, theta, goal[0], goal[1], goal[2]))
                     fringe.insert(n)
               #update n so its parent is s.
-                if fringe.update(s, x, y):
+                if fringe.update(s, x, y, theta):
                     updated = True
         if updated:
             fringe.updateFringeHeap()
@@ -53,12 +55,10 @@ def runAStar(Start, goal, grid):
 
 def main():
     #create grid, define barriers, etc. 
-    #locate start vertex of turtlebot and goal vertex.
+    #locate start vertex of piano bot and goal vertex.
     """Read the input arguments"""
     mapn = 1
     num = 0
-    fda = False
-    gweight = 0.5
     ros = False
     for i in range(1, len(sys.argv)):
         if sys.argv[i] == "-n" or sys.argv[i] == "-num" or sys.argv[i] == "-number":
@@ -67,17 +67,11 @@ def main():
         elif sys.argv[i] == "-map" or sys.argv[i] == "-m":
             mapn = sys.argv[i+1]
             i = i+1
-        elif sys.argv[i] == "-fda" or sys.argv[i] == "-f" or sys.argv[i] == "-FDA" or sys.argv[i] == "-F":
-            fda = True 
-        elif sys.argv[i] == "-opt" or sys.argv[i] == "-o" or sys.argv[i] == "-optimize":
-            gweight = float(sys.argv[i+1])
-            if gweight > 1 or gweight < 0: sys.exit("Error: gweight must be between 0 and 1 (inclusive)")
-            i = i+1
         elif sys.argv[i] == "-ros" or sys.argv[i] == "-r":
             ros = True
     #runAStar will return goal node if there's a path to goal from start
     if not ros:
-        filename = "comprobfall2018-hw1-master/turtlebot_maps/map_" + str(mapn) + ".txt"
+        filename = "~/CompRob/ass1/comprobfall2018-hw1-master/turtlebot_maps/map_" + str(mapn) + ".txt"
     else: filename = "/home/steven/catkin_ws/src/turtlebot_maps/map_" + str(mapn) + ".txt"
     grid = astar_grid.astarGrid(filename)
 #    [l.set_visible(False) for (i,l) in enumerate(plt.subplots()[1].xaxis.get_ticklabels()) if i % 4 != 0]
