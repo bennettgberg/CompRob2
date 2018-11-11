@@ -6,12 +6,115 @@ Created on Sat Nov 10 16:49:08 2018
 """
 import numpy.random as rand
 import numpy as np
+import shapely.geometry as geo
+import matplotlib.pyplot as plt
+import matplotlib.patches as ptc
 
-#returns a probabilistic random map 
-def PRM():
-    x=0
+#returns a probabilistic random map with N nodes
+def PRMPiano(N):
+    #a list of nodes
+    nodes=[]
+    #if you assign it to a variable, it cuts the runtime in half
+    #addNode = node.append
+    #the adjacency list: indicates which nodes in the first list are connected to the others
+    adjacency=[]
+    nodeGroups=[]
+    return 0
+
+#creates a 2D prm for testing the algorithm: will be deleted from final code
+#returns an array of nodes, a 2D array of indices the node at the row's index is connected to, and a distances array corresponding to these connections
+def PRM2D(N): 
+    #a list of 2D tuples representing x and y values of node  
+    2Dnodes=[]
+    addNode = 2Dnodes.append
+    2Dadjacency=[]
+    2Ddistances=[]
+    vertices=[(1,1),(1,2),(2,2),(2,1)]
+    poly1=geo.Polygon(vertices)
+    for i in range(0,N):
+        x=-1,y=-1
+        2Dadjacency[i]=[]
+        2Ddistances[i]=[]
+        #gets a valid X and Y
+        while(x<0 or poly1.contains(geo.Point(x,y)))
+            (x,y)=sample2D(5,5)
+        addNode((x,y))
+        k=3
+        #case: fewer than k nodes, don't check k or it will crash
+        if(k>i):
+            #if there is only one node, just add another
+            if i is 0:
+                continue
+            else:
+                k=i
+        kDists=[]
+        kIndices=[]
+        farD=0
+        j=0
+        #adds ten ordered elements to the list, ordered shortest to furthest
+        while len(closest<k) or j<i:
+            lineArgs=[2Dnodes[i],2Dnodes[j]]
+            tempLine=geo.LineString(lineArgs) 
+            #if the line in question doesn't intesect the obstacle
+            if not (tmpPoly.contains(poly1) or tempLine.crosses(poly1)): 
+                dist=2Ddist(2Dnodes[i],2Dnodes[j])
+                if dist>farD:
+                    farD=dist
+                kDists.append(dist)
+                kIndices.append(j)
+            j=j+1
+        
+        #if k is i: appends what we have, moves on to next sample so we can get more interesting cases
+        if k is i:
+            for j in range(0,len(kIndices)):
+                2Dadjacency[i].append(kIndices[j])
+                2Ddistances[i].append(kDists(j))
+                2Dadjacency[closestIndex[j]].append(i)
+                2Ddistances[closestIndex[j]].append(kDists(j))
+            continue
+                
+        #otherwise: sorts from lowest distance to highest distance     
+        [list(x) for x in zip(*sorted(zip(kDists, kIndices), key=lambda pair: pair[0]))]    
+        #gets the k closest neighbors (can be adapted to k nearest neighbors)
+        for j in range(k,i):
+            dist=2Ddist(2Dnodes[i],2Dnodes[j])
+            if dist < farD:
+                lineArgs=[2Dnodes[i],2Dnodes[j]]
+                tempLine=geo.LineString(lineArgs) 
+                if not (tmpPoly.contains(poly1) or tempLine.crosses(poly1)): 
+                    kIndices.append(k)
+                    kDists.append(dist)
+                    #I was extremely lazy and just inserted and sorted the list each time
+                    #this gets a lot faster if someone inserts the nodes  into the correct spots and then just pops the last node
+                    [list(x) for x in zip(*sorted(zip(kDists, kIndices), key=lambda pair: pair[0]))]  
+                    kDists.pop()
+                    kIndices.pop()
+                    farD=kDists[k-1]
+        #adds the edges we found to the lists            
+        for j in range(0,len(closest)):
+            2Dadjacency[i].append(closestIndex[j])
+            2Ddist[i].append(kDists(j))
+            2Dadjacency[closestIndex[j]].append(i)
+            2Ddist[closestIndex[j]].append(kDists(j))
+    return (2Dnodes,2Dadjacency,2Ddistances)
+
+
+def PRM2Dshow(2Dnodes,2Dadjacency):
+    return(0)
+
+def 2Ddist(pt1,pt2):
+    return np.sqrt((pt1[0]-pt2[0])**2+(pt1[1]-pt2[1])**2)    
     
+#returns a 2D point in the 2D square defined from (0,0) to (xmax,ymax)    
+def sample2D(xmax,ymax):
+    return (xmax*rand.rand(),ymamx*rand.rand())
 
+
+#takes in two xyz tuples, returns the euclidean distance between them
+def euclideanDistPiano(p1,p2):
+    dist=np.sqrt((p1[0]-p2[0])**2+(p1[1]-p2[1])**2+(p1[2]-p2[2])**2)
+    return dist
+    
 #returns randomized x,y,z, and a unit quaternion
 def sample6D(xmax,ymax,zmax):
     x=rand.rand()*xmax
