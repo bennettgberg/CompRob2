@@ -53,11 +53,11 @@ def PRM2D(N):
         farD=0
         j=0
         #adds ten ordered elements to the list, ordered shortest to furthest
-        while len(kDists)<k or j<i:
+        while len(kDists)<k and j<i:
             lineArgs=[twoDnodes[i],twoDnodes[j]]
             tempLine=geo.LineString(lineArgs) 
             #if the line in question doesn't intesect the obstacle
-            if not (poly1.contains(poly1) or tempLine.crosses(poly1)): 
+            if not (poly1.contains(tempLine) or tempLine.crosses(poly1)): 
                 dist=twoDdist(twoDnodes[i],twoDnodes[j])
                 if dist>farD:
                     farD=dist
@@ -69,9 +69,9 @@ def PRM2D(N):
         if k is i:
             for j in range(0,len(kIndices)):
                 twoDadjacency[i].append(kIndices[j])
-                twoDdistances[i].append(kDists(j))
+                twoDdistances[i].append(kDists[j])
                 twoDadjacency[kIndices[j]].append(i)
-                twoDdistances[kIndices[j]].append(kDists(j))
+                twoDdistances[kIndices[j]].append(kDists[j])
             continue
                 
         #otherwise: sorts from lowest distance to highest distance     
@@ -93,14 +93,26 @@ def PRM2D(N):
                     farD=kDists[k-1]
         #adds the edges we found to the lists            
         for j in range(0,len(kIndices)):
-            twoDadjacency[i].append(kIndices[j])
-            twoDdist[i].append(kDists(j))
-            twoDadjacency[kIndices[j]].append(i)
-            twoDdist[kIndices[j]].append(kDists(j))
+            ind2=kIndices[j]
+            twoDadjacency[i].append(ind2)
+            twoDdistances[i].append(kDists[j])
+            twoDadjacency[ind2].append(i)
+            twoDdistances[ind2].append(kDists[j])
     return twoDnodes, twoDadjacency, twoDdistances
 
 
 def PRM2Dshow(twoDnodes,twoDadjacency,twoDdistances):
+    polyXs=[1,1,2,2]
+    polyYs=[1,2,2,1]
+    plt.fill(polyXs,polyYs)
+    for i in range(0,len(twoDadjacency)-1):
+        for j in range(i,len(twoDadjacency[i])):
+            if twoDadjacency[i][j]>i:
+                pt1=twoDnodes[i]
+                pt2=twoDnodes[twoDadjacency[i][j]]
+                ys=[pt1[1],pt2[1]]
+                xs=[pt1[0],pt2[0]]
+                plt.plot(xs,ys,'red',linestyle='dashed')    
     return(0)
 
 def twoDdist(pt1,pt2):
