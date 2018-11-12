@@ -8,6 +8,7 @@ import numpy as np
 import matplotlib
 import sys
 import PRM
+import RRT
 
 #return heuristic of start while searching for goal (given by Equation 1 in assignment instructions). Or straight-line distance if running FDA*.
 #CHANGE THIS TO USE CORRECT DISTANCE FUNCTION LATER
@@ -75,6 +76,8 @@ def main():
     mapn = 1
     num = 0
     ros = False
+    rrt = False
+    nnodes = 50
     for i in range(1, len(sys.argv)):
         if sys.argv[i] == "-n" or sys.argv[i] == "-num" or sys.argv[i] == "-number":
             num = int(sys.argv[i+1])
@@ -84,6 +87,10 @@ def main():
             i = i+1
         elif sys.argv[i] == "-ros" or sys.argv[i] == "-r":
             ros = True
+        elif sys.argv[i] == "-RRT" or sys.argv[i] == "-rrt":
+            rrt = True
+        elif sys.argv[i] == "-nnodes":
+            nnodes = int(sys.argv[i+1])
     #runAStar will return goal node if there's a path to goal from start
     if not ros:
         filename = "map_" + str(mapn) + ".txt"
@@ -94,10 +101,17 @@ def main():
     plt.xticks(np.arange(0, 5, 1))
     plt.yticks(np.arange(0, 5, 1))
     plt.grid(b=True)
-    twoDnodes, twoDadjacency, twoDdistances = PRM.PRM2D(50)
     Start = anode.Node(1.1, 2.2, 0, None, 0)
+    if not rrt:
+        twoDnodes, twoDadjacency, twoDdistances = PRM.PRM2D(nnodes)
+    else:
+        twoDnodes, twoDadjacency = RRT.RRT2D(Start, (5,5), nnodes, 0.2)
+        twoDdistances = [[0.2 for x in range(nnodes)] for y in range(nnodes)]
     Goal = (twoDnodes[29][0], twoDnodes[29][1], 0)
     apath = runAStar(Start, Goal, grid, twoDnodes, twoDadjacency, twoDdistances)
+    if rrt:
+        RRT.RRT2Dshow(twoDnodes, twoDadjacency)
+        plt.show()
     points = []
     if not apath == None:
         #Now just follow the parent of goal in reverse to find the correct path.

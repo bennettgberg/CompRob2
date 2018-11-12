@@ -26,9 +26,9 @@ def RRTacker(dq):
 #ogpt: (x,y) of point in the RRT. randpt: (x,y) of the random point (expand in this direction). dq: distance between points.
 def getNew(ogpt, randpt, dq):
     m = (randpt[1] - ogpt[1] ) / (randpt[0] - ogpt[0])
-    alpha = math.Atan(m)
-    dx = dq * math.Cos(alpha)
-    dy = dq * math.Sin(alpha)
+    alpha = math.atan(m)
+    dx = dq * math.cos(alpha)
+    dy = dq * math.sin(alpha)
     return (ogpt[0]+dx, ogpt[1]+dy)
 
 #creates a 2D RRT for testing the algorithm: will be deleted from final code
@@ -43,8 +43,10 @@ def RRT2D(start, goal, N, dq):
     twoDdistances=[]
     vertices=[(1,1),(1,2),(2,2),(2,1)]
     poly1=geo.Polygon(vertices)
-    addNode(start)
-    for i in range(N):   
+    addNode((start.x, start.y))
+    i = 0
+    while i < N:          
+  #      print "i=" + str(i)
         x=-1
         y=-1
         twoDadjacency.append([])
@@ -52,16 +54,14 @@ def RRT2D(start, goal, N, dq):
         #gets a valid X and Y
         (x,y)=sample2D(5,5) #doesn't matter if there's a collision because we're just going dq in the direction of this point.
         plt.plot(x,y,'r.')
-      #  addNode((x,y))
-        kIndices=[]
-        farD=0
+        addNode((x,y))
         j=0
         #Get closest existing node 
         newpt = None
-        minD = twoDdist(twoDnodes[0], (x,y))
+        minD = float('inf')
         closej = 0
-        for j in range(i):
-            (newx, newy) = getNew(twDnodes[j], (x,y), dq)
+        for j in range(i+1):
+            (newx, newy) = getNew(twoDnodes[j], (x,y), dq)
             lineArgs=[twoDnodes[j], (newx, newy)]
             tempLine=geo.LineString(lineArgs) 
             #if the line in question doesn't intesect the obstacle
@@ -71,12 +71,13 @@ def RRT2D(start, goal, N, dq):
                     minD=dist
                     closej = j
                     newpt = (newx, newy)
+  #                  print "newpt: " + str(newpt)
         if newpt == None:
-            i -= 1
             continue
         twoDnodes.append(newpt)
         twoDadjacency[i].append(closej)
         twoDadjacency[closej].append(i)
+        i += 1
     return twoDnodes, twoDadjacency
 
 
