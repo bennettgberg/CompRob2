@@ -102,9 +102,41 @@ def PRMPiano(N):
 #start and goal states will be second to last and last nodes respectively
 #these new items are NOT the same objects as the old ones: the previous lists are reusable
 def addStartandGoalPiano(pianoNodes, pianoAdjacency, pianoDistances, startConfig, endConfig):
-    newPianoAdjacency = map(list, twoDadjacency)
-    newPianoNodes=map(list,twoDNodes)
-    newPianoDistances=map(list, twoDdistances)
+    newPianoAdjacency = map(list, pianoAdjacency)
+    newPianoNodes=map(list,pianoNodes)
+    newPianoDistances=map(list, pianoDistances)
+    startOrGoal=0
+    while startOrGoal<2:       
+        if startOrGoal is 0:
+            newPianoNodes.append(startConfig)
+            currIndex=len(newPianoNodes)-1
+            newPianoAdjacency.append([])
+            newPianoDistances.append([])             
+        if startOrGoal is 1: 
+            newPianoNodes.append(endConfig)
+            currIndex=len(newPianoNodes)-1
+            newPianoAdjacency.append([])
+            newPianoDistances.append([])             
+        #note: make sure this is consistent with the k used above
+        k=3        
+        #initializing temporary variables for k closest neighbors
+        kDists=[]
+        kIndices=[]
+        farD=0
+        j=0 
+        #adds k ordered elements to the list, ordered shortest to furthest
+        while len(kDists)<k and j<currIndex:
+            lineArgs=[newPianoNodes[currIndex],newPianoNodes[j]]
+            tempLine=geo.LineString(lineArgs) 
+            #if the line in question doesn't intesect the obstacle
+            if (validPianoPath(pianoNodes[currIndex],pianoNodes[j])): 
+                dist=pianoDistance(newPianoNodes[currIndex],newPianoNodes[j])
+                if dist>farD:
+                    farD=dist
+                kDists.append(dist)
+                kIndices.append(j)
+            j=j+1  
+        
     return 0
 
 #returns some weighted distance function for the piano
