@@ -359,8 +359,10 @@ def startAndGoal2DPRM(twoDNodes, twoDadjacency, twoDdistances, startConfig,endCo
             new2Ddistances[currIndex].append(kDists[j])
             new2Dadjacency[ind2].append(currIndex)
             new2Ddistances[ind2].append(kDists[j])
-        startOrGoal+=1    
-    return new2DNodes, new2Dadjacency, new2Ddistances, len(new2DNodes)-2, len(new2DNodes)-1
+        startOrGoal+=1
+        startIndex=len(new2DNodes)-2
+        goalIndex=len(new2DNodes)-1
+    return new2DNodes, new2Dadjacency, new2Ddistances, startIndex,goalIndex 
     
 def PRM2Dshow(twoDnodes,twoDadjacency,twoDdistances):
     polyXs=[1,1,2,2]
