@@ -347,15 +347,17 @@ def startAndGoal2DPRM(twoDNodes, twoDadjacency, twoDdistances, startConfig,endCo
     startOrGoal=0
     vertices=[(1,1),(1,2),(2,2),(2,1)]
     poly1=geo.Polygon(vertices)    
-    while startOrGoal<2:
-        new2Dadjacency.append([])
-        new2Ddistances.append([])        
+    while startOrGoal<2:      
         if startOrGoal is 0:
             new2DNodes.append(startConfig)
             currIndex=len(new2DNodes)-1
+            new2Dadjacency.append([])
+            new2Ddistances.append([])              
         if startOrGoal is 1: 
             new2DNodes.append(endConfig)
             currIndex=len(new2DNodes)-1
+            new2Dadjacency.append([])
+            new2Ddistances.append([])              
         #note: make sure this is consistent with the k used above
         k=3        
         #initializing temporary variables for k closest neighbors
