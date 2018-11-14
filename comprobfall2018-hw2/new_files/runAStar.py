@@ -106,7 +106,7 @@ def main():
         new2Dnodes, new2Dadjacency, new2Ddistances, startIndex, goalIndex = PRM.startAndGoal2DPRM(twoDnodes, twoDadjacency, twoDdistances, (1.1, 2.2), (3.3, 4.4))
         Start = anode.Node(new2Dnodes[startIndex][0], new2Dnodes[startIndex][1], 0, None, 0)
         print "Start = " + str(Start.x) + ", " + str(Start.y)
-        Goal = (twoDnodes[goalIndex][0], twoDnodes[goalIndex][1], 0)
+        Goal = (new2Dnodes[goalIndex][0], new2Dnodes[goalIndex][1], 0)
     else:
         twoDnodes, twoDadjacency = RRT.RRT2D(Start, (5,5), nnodes, 0.2)
         twoDdistances = [[0.2 for x in range(nnodes)] for y in range(nnodes)]
