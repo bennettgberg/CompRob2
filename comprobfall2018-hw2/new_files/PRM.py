@@ -9,6 +9,8 @@ import numpy as np
 import shapely.geometry as geo
 import matplotlib.pyplot as plt
 import matplotlib.patches as ptc
+import rospy
+from pqp_server.srv import *
 
 #creates a probibilistic roadmap for the piano
 #returns an array of nodes, a 2D array of indices the node at the row's index is connected to, and a distances array corresponding to these connections
@@ -165,15 +167,36 @@ def quatDistance(Q1,Q2):
 
 #takes a piano configuration, outputs a boolean True if it collides, False if it is valid 
 #interfaces with gazebo
-def pianoCollides():
+def pianoCollides(T, R):
+
+    R_flat = [1., 0., 0., 0., 1., 0., 0., 0., 1.]
+
+    for i in R:
+        for j in R[i]: 
+            R_flat[3*i+j] = R[i][j]
+
+    if len(T) != 3 or len(R_flat) != 9:
+        print "Incorrect list size for pqp request"
+        return True
+    rospy.wait_for_service('pqp_server')
+    try:
+        pqp_server = rospy.ServiceProxy('pqp_server', pqpRequest)
+        result = pqp_server(T, R_flat)
+        return result
+    except rospy.ServiceException, e:
+        print "Service Call Failed: %s"%e
+
     return True
 
 
 #takes two piano configurations, returns True if the path is valid, False if there is no straight line path between them
 #interfaces with gazebo
-def validPianoPath():
+def validPianoPath(state2):
     return False
     
+def getPianoPath(state1,state2):
+    return 0
+
 #returns randomized x,y,z, and a unit quaternion
 def sample6D(xmax,ymax,zmax):
     x=rand.rand()*xmax
