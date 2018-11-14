@@ -73,7 +73,24 @@ def collides(T, R):
 def validPath(config1, config2):
     return False
     
-def getPath(state1,state2):
+#takes in a start state, a terminal state, and a number of frames
+#returns a list of n state tuples interpolating the two states linearly
+#still needs 
+#NOTE: N states not counting the first state, including the last state    
+def getPath(state1,state2,N):
+    quat1=(state1(3),state1(4),state1(5),state1(6))
+    quat2=state2(state2(3),state2(4),state2(5),state2(6))
+    fraction=1/N
+    interpolatedStates=[]
+    deltaX=state2(0)-state1(0)
+    deltaY=state2(1)-state1(1)
+    deltaZ=state2(2)-state1(2)
+    for x in range(1,N):
+        quatInterp=quatSLERP(quat1,quat2, x*fraction)
+        statex=state1(0)+x*fraction*deltaX
+        statey=state1(1)+x*fraction*deltaY
+        statez=state1(2)+x*fraction*deltaZ
+        interpolatedStates.append((statex,statey,statez,quatInterp(0),quatInterp(1),quatInterp(2),quatInterp(3)))
     return 0
 
 #returns randomized x,y,z, and a unit quaternion
@@ -94,11 +111,10 @@ def sample6D(xmax,ymax,zmax):
 
     
 #input: two quaternions Q1 and Q2 as 4 element tuples
-#output: interpolation quaternion from Q1 to Q2  
-def quatSLERP(Q1,Q2):
+#output: interpolation quaternion from Q1 to Q2, fraction f  
+def quatSLERP(Q1,Q2,f):
    #lam is magnitude
     lam=0
-    f=.5
     #eps is the maximum angular distance to assume parallel
     #Mike made this number up, might need to check later
     eps=10**-6
