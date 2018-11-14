@@ -96,6 +96,17 @@ def PRMPiano(N):
             pianoDistances[ind2].append(kDists[j])
     return pianoNodes, pianoAdjacency, pianoDistances    
 
+
+#input: list of nodes, adjacency matrix, and distance matrix
+#returns: augmented nodes, adjacency matrix, and distance matrix, index of start and goal states
+#start and goal states will be second to last and last nodes respectively
+#these new items are NOT the same objects as the old ones: the previous lists are reusable
+def addStartandGoalPiano(pianoNodes, pianoAdjacency, pianoDistances, startConfig, endConfig):
+    newPianoAdjacency = map(list, twoDadjacency)
+    newPianoNodes=map(list,twoDNodes)
+    newPianoDistances=map(list, twoDdistances)
+    return 0
+
 #returns some weighted distance function for the piano
 #can use euclidean distance and quat distance as helper functions
 #this does not interface with Gazebo    
