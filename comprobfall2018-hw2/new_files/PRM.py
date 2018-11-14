@@ -305,6 +305,8 @@ def startAndGoal2DPRM(twoDNodes, twoDadjacency, twoDdistances, startConfig,endCo
     vertices=[(1,1),(1,2),(2,2),(2,1)]
     poly1=geo.Polygon(vertices)    
     while startOrGoal<2:
+        new2Dadjacency.append([])
+        new2Ddistances.append([])        
         if startOrGoal is 0:
             new2DNodes.append(startConfig)
             currIndex=len(new2DNodes)-1
@@ -313,11 +315,11 @@ def startAndGoal2DPRM(twoDNodes, twoDadjacency, twoDdistances, startConfig,endCo
             currIndex=len(new2DNodes)-1
         #note: make sure this is consistent with the k used above
         k=3        
+        #initializing temporary variables for k closest neighbors
         kDists=[]
         kIndices=[]
         farD=0
-        j=0
-        
+        j=0 
         #adds k ordered elements to the list, ordered shortest to furthest
         while len(kDists)<k and j<currIndex:
             lineArgs=[new2DNodes[currIndex],new2DNodes[j]]
@@ -359,9 +361,12 @@ def startAndGoal2DPRM(twoDNodes, twoDadjacency, twoDdistances, startConfig,endCo
             new2Ddistances[currIndex].append(kDists[j])
             new2Dadjacency[ind2].append(currIndex)
             new2Ddistances[ind2].append(kDists[j])
+        #tells our function to add the goal instead  of the start next iteration through    
         startOrGoal+=1
-        startIndex=len(new2DNodes)-2
-        goalIndex=len(new2DNodes)-1
+    #saves start and goal indices to return to client    
+    startIndex=len(new2DNodes)-2
+    goalIndex=len(new2DNodes)-1
+    #returns augmented copies of the original objects as well as start and goal indexes
     return new2DNodes, new2Dadjacency, new2Ddistances, startIndex,goalIndex 
     
 def PRM2Dshow(twoDnodes,twoDadjacency,twoDdistances):
