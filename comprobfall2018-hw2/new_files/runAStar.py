@@ -11,7 +11,6 @@ import PRM
 import RRT
 
 #return heuristic of start while searching for goal (given by Equation 1 in assignment instructions). Or straight-line distance if running FDA*.
-#CHANGE THIS TO USE CORRECT DISTANCE FUNCTION LATER
 def heur(startx, starty, starttheta, goalx, goaly, goaltheta):
     return math.sqrt((startx-goalx)**2 + (starty-goaly)**2 + (starttheta-goaltheta)**2)
 
@@ -21,14 +20,8 @@ def runAStar(Start, goal, grid, nodes, adjacency, distances):
     fringe = fring.Fringe()
     Closed = closed.Closed()
   #make sure we're starting at a real grid vertex.
-#    startx = round(Start.x / grid.xstep)*grid.xstep
-#    starty = round(Start.y / grid.ystep)*grid.ystep
-#    heu = heur(startx, starty, 0, goal[0], goal[1], 0)
-  #  start = anode.Node(startx, starty, 0, None, heu)
-  #NEED TO ADD START AND GOAL TO NODELISTS. 
-    start = anode.Node(nodes[0][0], nodes[0][1], 0, None, 0) #CHANGE TO CLOSEST NODE TO START POSITION!!!!!!!!!  
+    start = Start 
     start.parent = None #start
-    #start.h = heu 
     # g is 0 for the start
     start.f = start.h + 0
     fringe.insert(start) 
@@ -40,13 +33,10 @@ def runAStar(Start, goal, grid, nodes, adjacency, distances):
         Closed.insert(s)
 # Now go to neighbors of s, check if visited or in fringe.
         updated = False
-#        print adjacency[0]
-#        print distances[0]
-#        print nodes[0]
         #find index of s
         s_ind = -1
         for ind in range(len(nodes)):
-            if nodes[ind][0] == s.x and nodes[ind][1] == s.y:
+            if nodes[ind][0] == s.x and nodes[ind][1] == s.y and s.z == nodes[ind][2]:
                 s_ind = ind
                 break
         if s_ind == -1: sys.exit("Error: s_ind not found! s={}".format(str(s)))
