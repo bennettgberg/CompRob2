@@ -101,17 +101,18 @@ def main():
     plt.xticks(np.arange(0, 5, 1))
     plt.yticks(np.arange(0, 5, 1))
     plt.grid(b=True)
-    Start = anode.Node(1.1, 2.2, 0, None, 0)
     if not rrt:
         twoDnodes, twoDadjacency, twoDdistances = PRM.PRM2D(nnodes)
+        new2Dnodes, new2Dadjacency, new2Ddistances, startIndex, goalIndex = PRM.startAndGoal2DPRM(twoDnodes, twoDadjacency, twoDdistances, (1.1, 2.2), (3.3, 4.4))
+        Start = anode.Node(new2Dnodes[startIndex][0], new2Dnodes[startIndex][1], 0, None, 0)
+        Goal = (twoDnodes[goalIndex][0], twoDnodes[goalIndex][1], 0)
     else:
         twoDnodes, twoDadjacency = RRT.RRT2D(Start, (5,5), nnodes, 0.2)
         twoDdistances = [[0.2 for x in range(nnodes)] for y in range(nnodes)]
-    Goal = (twoDnodes[29][0], twoDnodes[29][1], 0)
-    apath = runAStar(Start, Goal, grid, twoDnodes, twoDadjacency, twoDdistances)
+    apath = runAStar(Start, Goal, grid, new2Dnodes, new2Dadjacency, new2Ddistances)
     if rrt:
         RRT.RRT2Dshow(twoDnodes, twoDadjacency)
-        plt.show()
+     #   plt.show()
     points = []
     if not apath == None:
         #Now just follow the parent of goal in reverse to find the correct path.
@@ -143,7 +144,7 @@ def main():
         print("Error! No path found!")
     plt.show()
    # PRM.PRM2Dshow(twoDnodes, twoDadjacency, twoDdistances)
-   # plt.show()
+    plt.show()
     if ros:
         for p in points:
             print "Sending (%s,%s)"%(p.x, p.y)
