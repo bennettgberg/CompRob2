@@ -95,7 +95,6 @@ def PRMPiano(N):
             pianoAdjacency[ind2].append(i)
             pianoDistances[ind2].append(kDists[j])
     return pianoNodes, pianoAdjacency, pianoDistances    
-    return 0
 
 #returns some weighted distance function for the piano
 #can use euclidean distance and quat distance as helper functions
@@ -262,7 +261,7 @@ def PRM2D(N):
             continue
                 
         #otherwise: sorts from lowest distance to highest distance     
-        [list(x) for x in zip(*sorted(zip(kDists, kIndices), key=lambda pair: pair[0]))]    
+        [list(X) for X in zip(*sorted(zip(kDists, kIndices), key=lambda pair: pair[0]))]    
         #gets the k closest neighbors (can be adapted to k nearest neighbors)
         for j in range(k,i):
             dist=twoDdist(twoDnodes[i],twoDnodes[j])
@@ -293,6 +292,76 @@ def PRM2D(N):
     return twoDnodes, twoDadjacency, twoDdistances
 
 
+#input: list of nodes, adjacency matrix, and distance matrix
+#returns: augmented nodes, adjacency matrix, and distance matrix, index of start and goal states
+#start and goal states will be second to last and last nodes respectively
+#these new items are NOT the same objects as the old ones: the previous lists are reusable
+def startAndGoal2DPRM(twoDNodes, twoDadjacency, twoDdistances, startConfig,endConfig):
+    #copies all the existing objects
+    new2Dadjacency = map(list, twoDadjacency)
+    new2DNodes=map(list,twoDNodes)
+    new2Ddistances=map(list, twoDdistances)
+    startOrGoal=0
+    vertices=[(1,1),(1,2),(2,2),(2,1)]
+    poly1=geo.Polygon(vertices)    
+    while startOrGoal<2:
+        if startOrGoal is 0:
+            new2DNodes.append(startConfig)
+            currIndex=len(new2DNodes)-1
+        if startOrGoal is 1: 
+            new2DNodes.append(endConfig)
+            currIndex=len(new2DNodes)-1
+        #note: make sure this is consistent with the k used above
+        k=3        
+        kDists=[]
+        kIndices=[]
+        farD=0
+        j=0
+        
+        #adds k ordered elements to the list, ordered shortest to furthest
+        while len(kDists)<k and j<currIndex:
+            lineArgs=[new2DNodes[currIndex],new2DNodes[j]]
+            tempLine=geo.LineString(lineArgs) 
+            #if the line in question doesn't intesect the obstacle
+            if not (poly1.contains(tempLine) or tempLine.crosses(poly1)): 
+                dist=twoDdist(new2DNodes[currIndex],new2DNodes[j])
+                if dist>farD:
+                    farD=dist
+                kDists.append(dist)
+                kIndices.append(j)
+            j=j+1        
+        #sorts from lowest distance to highest distance     
+        [list(x) for x in zip(*sorted(zip(kDists, kIndices), key=lambda pair: pair[0]))]         
+        #gets the k closest neighbors (can be adapted to k nearest neighbors)
+        for j in range(k,currIndex):
+            dist=twoDdist(new2DNodes[currIndex],new2DNodes[j])
+            if dist < farD:
+                lineArgs=[new2DNodes[currIndex],new2DNodes[j]]
+                tempLine=geo.LineString(lineArgs) 
+                if not (poly1.contains(poly1) or tempLine.crosses(poly1)): 
+                    #finds where in the list of k closest neighbors to insert it
+                    for p in range(0,len(kIndices)):
+                        if dist<=kDists[p]:
+                            #inserts it at the first place it's closer than an existing node
+                            #because these are ordered close to far
+                            kDists.insert(p,dist)
+                            kIndices.insert(p,j)
+                            #pops the old ones now that it's inserted    
+                            kDists.pop()
+                            kIndices.pop()
+                            #updates the new farthest distance
+                            farD=kDists[k-1]                            
+                            break                    
+        #adds the edges we found to the lists            
+        for j in range(0,len(kIndices)):
+            ind2=kIndices[j]
+            new2Dadjacency[currIndex].append(ind2)
+            new2Ddistances[currIndex].append(kDists[j])
+            new2Dadjacency[ind2].append(currIndex)
+            new2Ddistances[ind2].append(kDists[j])
+        startOrGoal+=1    
+    return new2DNodes, new2Dadjacency, new2Ddistances, len(new2DNodes)-2, len(new2DNodes)-1
+    
 def PRM2Dshow(twoDnodes,twoDadjacency,twoDdistances):
     polyXs=[1,1,2,2]
     polyYs=[1,2,2,1]
