@@ -11,17 +11,18 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as ptc
 import rospy
 from pqp_server.srv import *
+import planning
 
 #creates a probibilistic roadmap for the piano
+#N: how many nodes in the roadmap. k: how many neighbors to check 
 #returns an array of nodes, a 2D array of indices the node at the row's index is connected to, and a distances array corresponding to these connections
 #this is actually traversed using the Astar algorithm
-def PRMPiano(N):
+def PRMPiano(N, k=3):
     #a list of nodes
     pianoNodes=[]
     #making this a function instead of calling cuts the runtime in half
     addNode = pianoNodes.append
     #if you assign it to a variable, it cuts the runtime in half
-    #addNode = node.append
     #the adjacency list: indicates which nodes in the first list are connected to the others
     pianoAdjacency=[]
     pianoDistances=[]
@@ -33,10 +34,11 @@ def PRMPiano(N):
         #gets a valid position for the piano
         #NOTE: I do not know what the coordinate system is: negative numbers might be fair game
         #in which case "x<0" is not a valid criterion
-        while(pianoPos[0]<0 or pianoCollides()):
+        while True:
             pianoPos=sample6D()
+            if not planning.collides(pianoPos)):
+                break
         addNode(pianoPos)
-        k=3
         #case: fewer than k nodes, don't check k or it will crash
         if(k>i):
             #if there is only one node, just add another
@@ -52,7 +54,7 @@ def PRMPiano(N):
         while len(kDists)<k and j<i:
             #if the line in question doesn't intesect the obstacle
             if (validPianoPath(pianoNodes[i],pianoNodes[j])): 
-                dist=pianoDistance(pianoNodes[i],pianoNodes[j])
+                dist=planning.distance((pianoNodes[i].config, pianoNodes[j].config)
                 if dist>farD:
                     farD=dist
                 kDists.append(dist)
@@ -74,7 +76,7 @@ def PRMPiano(N):
         for j in range(k,i):
             dist=twoDdist(pianoNodes[i],pianoNodes[j])
             if dist < farD: 
-                if (validPianoPath(pianoNodes[i],pianoNodes[j])): 
+                if (planning.validPath(pianoNodes[i].config,pianoNodes[j].config)): 
                     #finds where in the list of k closest neighbors to insert it
                     for p in range(0,len(kIndices)):
                         if dist<=kDists[p]:
@@ -103,7 +105,7 @@ def PRMPiano(N):
 #returns: augmented nodes, adjacency matrix, and distance matrix, index of start and goal states
 #start and goal states will be second to last and last nodes respectively
 #these new items are NOT the same objects as the old ones: the previous lists are reusable
-def addStartandGoalPiano(pianoNodes, pianoAdjacency, pianoDistances, startConfig, endConfig):
+def addStartandGoalPiano(pianoNodes, pianoAdjacency, pianoDistances, startConfig, endConfig, k=3):
     newPianoAdjacency = map(list, pianoAdjacency)
     newPianoNodes=map(list,pianoNodes)
     newPianoDistances=map(list, pianoDistances)
@@ -119,8 +121,7 @@ def addStartandGoalPiano(pianoNodes, pianoAdjacency, pianoDistances, startConfig
             currIndex=len(newPianoNodes)-1
             newPianoAdjacency.append([])
             newPianoDistances.append([])             
-        #note: make sure this is consistent with the k used above
-        k=3        
+        #note: make sure this is consistent with the k used above 
         #initializing temporary variables for k closest neighbors
         kDists=[]
         kIndices=[]
@@ -128,148 +129,45 @@ def addStartandGoalPiano(pianoNodes, pianoAdjacency, pianoDistances, startConfig
         j=0 
         #adds k ordered elements to the list, ordered shortest to furthest
         while len(kDists)<k and j<currIndex:
-            lineArgs=[newPianoNodes[currIndex],newPianoNodes[j]]
-            tempLine=geo.LineString(lineArgs) 
             #if the line in question doesn't intesect the obstacle
             if (validPianoPath(pianoNodes[currIndex],pianoNodes[j])): 
-                dist=pianoDistance(newPianoNodes[currIndex],newPianoNodes[j])
+                dist=planning.distance(newPianoNodes[currIndex].config,newPianoNodes[j].config)
                 if dist>farD:
                     farD=dist
                 kDists.append(dist)
                 kIndices.append(j)
             j=j+1  
-        
-    return 0
+        #otherwise: sorts from lowest distance to highest distance, checks the rest    
+        [list(x) for x in zip(*sorted(zip(kDists, kIndices), key=lambda pair: pair[0]))]    
+        #gets the k closest neighbors (can be adapted to k nearest neighbors)
+        for j in range(k,currIndex):
+            dist=distance(pianoNodes[currIndex].config,pianoNodes[j].config)
+            if dist < farD: 
+                if (planning.validPath(pianoNodes[currIndex].config,pianoNodes[j].config)): 
+                    #finds where in the list of k closest neighbors to insert it
+                    for p in range(0,len(kIndices)):
+                        if dist<=kDists[p]:
+                            #inserts it at the first place it's closer than an existing node
+                            #because these are ordered close to far
+                            kDists.insert(p,dist)
+                            kIndices.insert(p,j)
+                            #pops the old ones now that it's inserted    
+                            kDists.pop()
+                            kIndices.pop()
+                            #updates the new farthest distance
+                            farD=kDists[k-1]                            
+                            break
 
-#returns some weighted distance function for the piano
-#can use euclidean distance and quat distance as helper functions
-#this does not interface with Gazebo    
-def pianoDistance(config1, config2):
-    return 0
-
-#takes in two xyz tuples, returns the euclidean distance between them
-def euclideanDistPiano(p1,p2):
-    dist=np.sqrt((p1[0]-p2[0])**2+(p1[1]-p2[1])**2+(p1[2]-p2[2])**2)
-    return dist
-
-#returns an approximate distance metric between two unit quaternions
-#need: rotational speed omega to scale this into a time   
-    #should this actually 1/omega so 1/sec->sec
-#double check algorithm in lecture slide 5
-def quatDistance(Q1,Q2):
-    gamma=0
-    omega=1
-    #dot product
-    for i in range(0,4):
-        gamma+=Q1[i]*Q2[i]
-    rho=omega*(1-np.abs(gamma))
-    return rho  
-
-#takes a piano configuration, outputs a boolean True if it collides, False if it is valid 
-#interfaces with gazebo
-def pianoCollides(T, R):
-
-    R_flat = [1., 0., 0., 0., 1., 0., 0., 0., 1.]
-
-    for i in R:
-        for j in R[i]: 
-            R_flat[3*i+j] = R[i][j]
-
-    if len(T) != 3 or len(R_flat) != 9:
-        print "Incorrect list size for pqp request"
-        return True
-    rospy.wait_for_service('pqp_server')
-    try:
-        pqp_server = rospy.ServiceProxy('pqp_server', pqpRequest)
-        result = pqp_server(T, R_flat)
-        return result
-    except rospy.ServiceException, e:
-        print "Service Call Failed: %s"%e
-
-    return True
-
-
-#takes two piano configurations, returns True if the path is valid, False if there is no straight line path between them
-#interfaces with gazebo
-def validPianoPath(state2):
-    return False
-    
-def getPianoPath(state1,state2):
-    return 0
-
-#returns randomized x,y,z, and a unit quaternion
-def sample6D(xmax,ymax,zmax):
-    x=rand.rand()*xmax
-    y=rand.rand()*ymax
-    z=rand.rand()*zmax
-    s=rand.rand()
-    sigma1=np.sqrt(1-s)
-    sigma2=np.sqrt(s)
-    theta1=2*np.pi*rand.rand()
-    theta2=2*np.pi*rand.rand()
-    a=np.cos(theta2)*sigma2
-    b=np.sin(theta1)*sigma1
-    c=np.cos(theta1)*sigma1
-    d=np.sin(theta2)*sigma2    
-    return (x,y,z,a,b,c,d)
-
-    
-#input: two quaternions Q1 and Q2 as 4 element tuples
-#output: interpolation quaternion from Q1 to Q2  
-def quatSLERP(Q1,Q2):
-   #lam is magnitude
-    lam=0
-    f=.5
-    #eps is the maximum angular distance to assume parallel
-    #Mike made this number up, might need to check later
-    eps=10**-6
-    #dot product
-    for i in range(0,4):
-        lam+=Q1[i]*Q2[i]
-    #if negative, flips them
-    if lam <0:
-        Q2=(-Q2[0],-Q2[1],-Q2[2],-Q2[3])
-        lam=-lam
-    if np.abs(1-lam)<eps:
-        r=1-f
-        s=f
-    else:
-        alpha=np.arccos(lam)
-        gamma=1/np.sin(alpha)
-        r=np.sin((1-f)*alpha)*gamma
-        s=np.sin(f*alpha)*gamma
-    w=r*Q1[0]+s*Q2[0]
-    x=r*Q1[1]+s*Q2[1]
-    y=r*Q1[2]+s*Q2[2]
-    z=r*Q1[3]+s*Q2[3]
-    Q=[w,x,y,z]
-    Qmag=0
-    for i in range(0,4):
-        Qmag+=Q[i]**2
-    Qmag=np.sqrt(Qmag)
-    for i in range(0,4):
-        Q[i]=Q[i]/Qmag
-    return (Q[0],Q[1],Q[2],Q[3])
-    
-#converts a set of quaternions into a rotation matrix
-#returns a 3x3 list
-def quatToMatrix(w,x,y,z):
-    R=[[0,0,0],[0,0,0],[0,0,0]]
-    
-    R[0][0]=1-2*y**2-2*z**2
-    R[0][1]=2*x*y-2*z*w
-    R[0][2]=2*x*z+2*y*w
-    
-    R[1][0]=2*x*y+2*z*w
-    R[1][1]=1-2*x**2-2*z**2
-    R[1][2]=2*y*z-2*x*w
-    
-    R[2][0]=2*x*z-2*y*w
-    R[2][1]=2*y*z+2*x*w
-    R[2][2]=1-2*x**2-2*y**2
-    return R
-
-
+        #adds the edges we found to the lists            
+        for j in range(0,len(kIndices)):
+            ind2=kIndices[j]
+            newPianoAdjacency[currIndex].append(ind2)
+            newPianoDistances[currIndex].append(kDists[j])
+            newPianoAdjacency[ind2].append(currIndex)
+            newPianoDistances[ind2].append(kDists[j])
+    startIndex=len(newPianoNodes)-2    
+    goalIndex=len(newPianoNodes)-1    
+    return newPianoNodes, newPianoAdjacency, newPianoDistances, startIndex, goalIndex
 
 #creates a 2D prm for testing the algorithm: will be deleted from final code
 #returns an array of nodes, a 2D array of indices the node at the row's index is connected to, and a distances array corresponding to these connections
@@ -450,12 +348,4 @@ def PRM2Dshow(twoDnodes,twoDadjacency,twoDdistances):
                 xs=[pt1[0],pt2[0]]
                 plt.plot(xs,ys,'red',linestyle='dashed')    
     return(0)
-
-def twoDdist(pt1,pt2):
-    return np.sqrt((pt1[0]-pt2[0])**2+(pt1[1]-pt2[1])**2)    
-    
-#returns a 2D point in the 2D square defined from (0,0) to (xmax,ymax)    
-def sample2D(xmax,ymax):
-    return (xmax*rand.rand(),ymax*rand.rand())
-
 

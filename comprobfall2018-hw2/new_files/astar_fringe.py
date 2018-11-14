@@ -7,7 +7,7 @@ This is a temporary script file.
 import astar_node
 import heapq
 import math
-import astar_grid
+import planning
 
 class Fringe:
     #object variables for a dictionary and a heap
@@ -26,16 +26,16 @@ class Fringe:
 
     """Inserts node into fringe heap and open dictionary"""
     def insert(self,node):
-        key=str(node.x)+'_'+str(node.y) + '_' + str(node.theta)
+        ind=planning.key(node.config)
         heapKey=node.f
-        self.fringeDict[key]=node
+        self.fringeDict[ind]=node
         heapq.heappush(self.fringeHeap,(heapKey,node))
         
     """Uses the open dictionary to update nodes in the fringe heap/dict
         returns true if it updated, false if it remained the same"""    
-    def update(self,parent,x,y, theta, distance):
-        key = str(x)+'_'+str(y) + '_' + str(theta)
-        updateNode = self.fringeDict[key]
+    def update(self,parent, x,y,z,w,i,j,k, distance):
+        ind = planning.key((x, y, z, w, i, j, k)) 
+        updateNode = self.fringeDict[ind]
         newG = parent.g + distance 
         newF = newG + updateNode.h 
         if newF < updateNode.f:
@@ -48,9 +48,9 @@ class Fringe:
      
     """Checks to see if node for this x,y coordinate is present: 
         if it is, returns True, returns False otherwise"""
-    def check(self,x,y,theta):
-        key=str(x)+'_'+str(y) + '_' + str(theta)
-        if key in self.fringeDict:
+    def check(self,x,y,z,w,i,j,k):
+        ind = planning.key((x, y, z, w, i, j, k)) 
+        if ind in self.fringeDict:
             return True
         else:
             return False
@@ -62,6 +62,6 @@ class Fringe:
     """returns the top node in the heap, removes it from the open list and heap"""    
     def fringePop(self):
         tempNode=heapq.heappop(self.fringeHeap)
-        key=key=str(tempNode[1].x)+'_'+str(tempNode[1].y) + '_' + str(tempNode[1].theta)
-        del self.fringeDict[key]
+        ind = planning.key(tempNode[1].config)
+        del self.fringeDict[ind]
         return tempNode[1]
