@@ -70,8 +70,20 @@ def collides(T, R):
 
 #takes two configurations (x1,y1,z1,w1,i1,j1,k1) and (x2,y2,z2,w2,i2,j2,k2), returns True if the path is valid, False if there is no straight line path between them
 #interfaces with gazebo
-def validPath(config1, config2):
-    return False
+#checks N-1 interpolant states, terminal state
+#does not check config 1    
+def validPath(config1, config2,N):
+    #gets interpolated states
+    statesToCheck=getPath(config1,config2,N)
+    check=True
+    for index in range(0,len(statesToCheck)):
+        state=statesToCheck[index]
+        rotationMatrix=quatToMatrix(state[3],state[4],state[5],state[6])
+        check=collides([state[0],state[1],state[2]],rotationMatrix)
+        #if t collided anywhere, it failed
+        if check is False:
+            return False
+    return True
     
 #takes in a start state, a terminal state, and a number of frames
 #returns a list of n state tuples interpolating the two states linearly
