@@ -36,7 +36,7 @@ def PRMPiano(N, k=3):
         #in which case "x<0" is not a valid criterion
         while True:
             pianoPos=sample6D()
-            if not planning.collides(pianoPos)):
+            if not planning.collides(pianoPos):
                 break
         addNode(pianoPos)
         #case: fewer than k nodes, don't check k or it will crash
@@ -54,7 +54,7 @@ def PRMPiano(N, k=3):
         while len(kDists)<k and j<i:
             #if the line in question doesn't intesect the obstacle
             if (validPianoPath(pianoNodes[i],pianoNodes[j])): 
-                dist=planning.distance((pianoNodes[i].config, pianoNodes[j].config)
+                dist=planning.distance((pianoNodes[i].config, pianoNodes[j].config))
                 if dist>farD:
                     farD=dist
                 kDists.append(dist)
