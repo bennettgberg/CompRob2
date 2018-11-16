@@ -9,6 +9,7 @@ import sys
 import PRM
 import RRT
 import planning
+import geometry_msgs.msg
 
 #return heuristic of start while searching for goal (given by Equation 1 in assignment instructions). Or straight-line distance if running FDA*.
 def heur(config, goalConfig):
@@ -91,7 +92,7 @@ def main():
         RRT.RRT2Dshow(twoDnodes, twoDadjacency)
      #   plt.show()
     #NOW MOVE ALONG THE PATH THAT WAS FOUND!
-    points = []
+    poses = []
     if not apath == None:
         #Now just follow the parent of goal in reverse to find the correct path.
         current = apath                                                  
@@ -108,10 +109,12 @@ def main():
             tby.append(current.config[1])
             current = path.pop()
             if ros:
-                import turtlebot_control_client
-                 # add points to list to send to turtlebot_control_client
-                p = Point(current.config[0], current.config[1], 0)
-                points.append(p)
+                import ackermann_publisher
+                # add points to list to send to turtlebot_control_client
+                q = geometry_msgs.msg.Quaternion(*current.config[3:7])
+                p = geometry_msgs.msg.Point(*current.config[0:3])
+                pose = geometry_msgs.msg.Pose(p, q)
+                poses.append(pose)
         if not ros: print("Position: x={}, y={}".format(current.config[0], current.config[1]))
         tbx.append(current.config[0])
         tby.append(current.config[1])
@@ -122,9 +125,9 @@ def main():
    # PRM.PRM2Dshow(twoDnodes, twoDadjacency, twoDdistances)
     plt.show()
     if ros:
-        for p in points:
+        for pose in poses:
             print "Sending (%s,%s)"%(p.x, p.y)
-            if turtlebot_control_client.TurtlebotControlClient(p).data !=True:
+            if ackermann_publisher.model_state_publisher(pose).data !=True:
                 print("Error! Collsion!")
             else: print "Sent turtlebot to (%s, %s) with no collision."%(p.x, p.y)
 main()
