@@ -10,6 +10,9 @@ import shapely.geometry as geo
 import matplotlib.pyplot as plt
 import matplotlib.patches as ptc
 import rospy
+
+import sys
+sys.path.append('../')
 from pqp_server.srv import *
 import planning
 
@@ -35,9 +38,12 @@ def PRMPiano(N, k=3):
         #NOTE: I do not know what the coordinate system is: negative numbers might be fair game
         #in which case "x<0" is not a valid criterion
         while True:
-            pianoPos=sample6D()
-            if not planning.collides(pianoPos):
+            pianoPos=planning.sample6D(10,10,10)
+            collides = planning.collides(pianoPos[0:3], planning.quatToMatrix(pianoPos[3],pianoPos[4],pianoPos[5],pianoPos[6]))
+            if not collides:
+                print("no collision for {}".format(pianoPos))
                 break
+            print("collision for {}".format(pianoPos))
         addNode(pianoPos)
         #case: fewer than k nodes, don't check k or it will crash
         if(k>i):
@@ -53,8 +59,8 @@ def PRMPiano(N, k=3):
         #adds ten ordered elements to the list, ordered shortest to furthest
         while len(kDists)<k and j<i:
             #if the line in question doesn't intesect the obstacle
-            if (validPianoPath(pianoNodes[i],pianoNodes[j])): 
-                dist=planning.distance((pianoNodes[i].config, pianoNodes[j].config))
+            if (planning.validPath(pianoNodes[i], pianoNodes[j], 10)): 
+                dist=planning.distance((pianoNodes[i], pianoNodes[j]))
                 if dist>farD:
                     farD=dist
                 kDists.append(dist)
@@ -74,9 +80,9 @@ def PRMPiano(N, k=3):
         [list(x) for x in zip(*sorted(zip(kDists, kIndices), key=lambda pair: pair[0]))]    
         #gets the k closest neighbors (can be adapted to k nearest neighbors)
         for j in range(k,i):
-            dist=twoDdist(pianoNodes[i],pianoNodes[j])
+            dist=planning.distance(pianoNodes[i],pianoNodes[j])
             if dist < farD: 
-                if (planning.validPath(pianoNodes[i].config,pianoNodes[j].config)): 
+                if (planning.validPath(pianoNodes[i],pianoNodes[j], 10)): 
                     #finds where in the list of k closest neighbors to insert it
                     for p in range(0,len(kIndices)):
                         if dist<=kDists[p]:
@@ -107,10 +113,10 @@ def PRMPiano(N, k=3):
 #these new items are NOT the same objects as the old ones: the previous lists are reusable
 def addStartandGoalPiano(pianoNodes, pianoAdjacency, pianoDistances, startConfig, endConfig, k=3):
     newPianoAdjacency = map(list, pianoAdjacency)
-    newPianoNodes=map(list,pianoNodes)
+    newPianoNodes=map(list, pianoNodes)
     newPianoDistances=map(list, pianoDistances)
-    startOrGoal=0
-    while startOrGoal<2:       
+    for startOrGoal in range(0,2):
+        print("len(newPianoNodes)={}".format(len(newPianoNodes)))
         if startOrGoal is 0:
             newPianoNodes.append(startConfig)
             currIndex=len(newPianoNodes)-1
@@ -130,8 +136,11 @@ def addStartandGoalPiano(pianoNodes, pianoAdjacency, pianoDistances, startConfig
         #adds k ordered elements to the list, ordered shortest to furthest
         while len(kDists)<k and j<currIndex:
             #if the line in question doesn't intesect the obstacle
-            if (validPianoPath(pianoNodes[currIndex],pianoNodes[j])): 
-                dist=planning.distance(newPianoNodes[currIndex].config,newPianoNodes[j].config)
+            print("len(newPianoNodes)={}".format(len(newPianoNodes)))
+            print("len(pianoNodes)={}".format(len(pianoNodes)))
+            print("j={}, currIndex={}".format(j,currIndex))
+            if (planning.validPath(newPianoNodes[currIndex],newPianoNodes[j], 10)): 
+                dist=planning.distance(newPianoNodes[currIndex],newPianoNodes[j])
                 if dist>farD:
                     farD=dist
                 kDists.append(dist)
@@ -141,9 +150,9 @@ def addStartandGoalPiano(pianoNodes, pianoAdjacency, pianoDistances, startConfig
         [list(x) for x in zip(*sorted(zip(kDists, kIndices), key=lambda pair: pair[0]))]    
         #gets the k closest neighbors (can be adapted to k nearest neighbors)
         for j in range(k,currIndex):
-            dist=distance(pianoNodes[currIndex].config,pianoNodes[j].config)
+            dist=planning.distance(newPianoNodes[currIndex],newPianoNodes[j])
             if dist < farD: 
-                if (planning.validPath(pianoNodes[currIndex].config,pianoNodes[j].config)): 
+                if (planning.validPath(newPianoNodes[currIndex],newPianoNodes[j], 10)): 
                     #finds where in the list of k closest neighbors to insert it
                     for p in range(0,len(kIndices)):
                         if dist<=kDists[p]:

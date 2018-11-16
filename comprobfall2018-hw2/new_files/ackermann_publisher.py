@@ -21,24 +21,24 @@ def ackermann_publisher(speed, steering_angle):
 		pub.publish(state)
 		rate.sleep();
 
-# def model_state_publisher(pose, twist):
-# 	pub = rospy.Publisher("/gazebo/set_model_state,", ModelState, queue_size=1)
-# 	rospy.init_node('model_state_controller', anonymous=True)
-# 	rate = rospy.Rate(10) # 10hz
-# 	while not rospy.is_shutdown():
+def model_state_publisher(pose, twist):
+	pub = rospy.Publisher("/gazebo/set_model_state,", ModelState, queue_size=1)
+	rospy.init_node('model_state_controller', anonymous=True)
+	rate = rospy.Rate(10) # 10hz
+	while not rospy.is_shutdown():
 		
-# 		model_state = ModelState()
-# 		model_state.model_name = "ackermann_vehicle"
-# 		model_state.pose = pose
-# 		model_state.twist = twist
-# 		model_state.reference_frame = "world"
-# 		# model_state.pose.orientation.x = tf.transformations.quaternion_from_euler(0,0,steering_angle)[0]
-# 		# model_state.pose.orientation.y = tf.transformations.quaternion_from_euler(0,0,steering_angle)[1]
-# 		# model_state.pose.orientation.z = tf.transformations.quaternion_from_euler(0,0,steering_angle)[2]
-# 		# model_state.pose.orientation.w = tf.transformations.quaternion_from_euler(0,0,steering_angle)[3]
-# 		rospy.loginfo(model_state)
-# 		pub.publish(model_state)
-# 		rate.sleep()
+		model_state = ModelState()
+		model_state.model_name = "ackermann_vehicle"
+		model_state.pose = pose
+		model_state.twist = twist
+		model_state.reference_frame = "world"
+		# model_state.pose.orientation.x = tf.transformations.quaternion_from_euler(0,0,steering_angle)[0]
+		# model_state.pose.orientation.y = tf.transformations.quaternion_from_euler(0,0,steering_angle)[1]
+		# model_state.pose.orientation.z = tf.transformations.quaternion_from_euler(0,0,steering_angle)[2]
+		# model_state.pose.orientation.w = tf.transformations.quaternion_from_euler(0,0,steering_angle)[3]
+		rospy.loginfo(model_state)
+		pub.publish(model_state)
+		rate.sleep()
 
 def usage():
 	return "%s Enter two numbers speed and steering_angle"%sys.argv[0]

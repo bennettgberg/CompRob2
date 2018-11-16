@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as ptc
 import rospy
 import math
+import sys
 from pqp_server.srv import *
 
 def key(config):
@@ -22,12 +23,12 @@ def key(config):
 def distance(p1, p2, wt=1):
     ed = euclideanDist((p1[0], p1[1], p1[1]), (p2[0], p2[1], p2[2])) 
     qd = quatDist((p1[3], p1[4], p1[5], p1[6]), (p2[3], p2[4], p2[5], p2[6]))
-    return ed + wt*quatDist
+    return ed + wt*qd
 
 #takes in two xyz tuples, returns the euclidean distance between them
 def euclideanDist(p1,p2):
     dist2 = 0
-    for i in range(7):
+    for i in range(3):
         dist2 += (p1[i]-p2[i])**2
     return math.sqrt(dist2)
 
@@ -50,17 +51,20 @@ def collides(T, R):
 
     R_flat = [1., 0., 0., 0., 1., 0., 0., 0., 1.]
 
-    for i in R:
-        for j in R[i]: 
+    for i in range(len(R)):
+        for j in range(len(R[i])): 
             R_flat[3*i+j] = R[i][j]
 
     if len(T) != 3 or len(R_flat) != 9:
-        print "Incorrect list size for pqp request"
-        return True
+        sys.exit("Incorrect list size for pqp request")
     rospy.wait_for_service('pqp_server')
     try:
         pqp_server = rospy.ServiceProxy('pqp_server', pqpRequest)
         result = pqp_server(T, R_flat)
+        print result
+        if(str(result)=="result: False"): result = False
+        else: result = True
+        print("pqp_server returned {} for {}, {}".format(result, T, R_flat))
         return result
     except rospy.ServiceException, e:
         print "Service Call Failed: %s"%e
@@ -72,7 +76,7 @@ def collides(T, R):
 #interfaces with gazebo
 #checks N-1 interpolant states, terminal state
 #does not check config 1    
-def validPath(config1, config2,N):
+def validPath(config1, config2, N):
     #gets interpolated states
     statesToCheck=getPath(config1,config2,N)
     check=True
@@ -90,25 +94,25 @@ def validPath(config1, config2,N):
 #still needs 
 #NOTE: N states not counting the first state, including the last state    
 def getPath(state1,state2,N):
-    quat1=(state1(3),state1(4),state1(5),state1(6))
-    quat2=state2(state2(3),state2(4),state2(5),state2(6))
-    fraction=1/N
+    quat1=state1[3:7]
+    quat2=state2[3:7]
+    fraction=1.0/N
     interpolatedStates=[]
-    deltaX=state2(0)-state1(0)
-    deltaY=state2(1)-state1(1)
-    deltaZ=state2(2)-state1(2)
+    deltaX=state2[0]-state1[0]
+    deltaY=state2[1]-state1[1]
+    deltaZ=state2[2]-state1[2]
     for x in range(1,N):
         quatInterp=quatSLERP(quat1,quat2, x*fraction)
-        statex=state1(0)+x*fraction*deltaX
-        statey=state1(1)+x*fraction*deltaY
-        statez=state1(2)+x*fraction*deltaZ
-        interpolatedStates.append((statex,statey,statez,quatInterp(0),quatInterp(1),quatInterp(2),quatInterp(3)))
-    return 0
+        statex=state1[0]+x*fraction*deltaX
+        statey=state1[1]+x*fraction*deltaY
+        statez=state1[2]+x*fraction*deltaZ
+        interpolatedStates.append((statex,statey,statez,quatInterp[0],quatInterp[1],quatInterp[2],quatInterp[3]))
+    return interpolatedStates
 
 #returns randomized x,y,z, and a unit quaternion
 def sample6D(xmax,ymax,zmax):
-    x=rand.rand()*xmax
-    y=rand.rand()*ymax
+    x=rand.rand()*2*xmax-10
+    y=rand.rand()*2*ymax-10
     z=rand.rand()*zmax
     s=rand.rand()
     sigma1=np.sqrt(1-s)

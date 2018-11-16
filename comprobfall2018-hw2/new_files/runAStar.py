@@ -27,7 +27,7 @@ def runAStar(Start, goal, nodes, adjacency, distances):
 
     while not fringe.empty():
         s = fringe.fringePop()
-        if s.x == goal[0] and s.y == goal[1] and s.theta == goal[2]:
+        if s.config == goal:
             return s
         Closed.insert(s)
 # Now go to neighbors of s, check if visited or in fringe.
@@ -35,17 +35,17 @@ def runAStar(Start, goal, nodes, adjacency, distances):
         #find index of s
         s_ind = -1
         for ind in range(len(nodes)):
-            if nodes[ind][0] == s.x and nodes[ind][1] == s.y and s.z == nodes[ind][2]:
+            if nodes[ind] == s.config:
                 s_ind = ind
                 break
         if s_ind == -1: sys.exit("Error: s_ind not found! s={}".format(str(s)))
         for ni in range(len(adjacency[s_ind])): #get k nearest neighbors of s: FIX THIS!!!!!(Which index for adjacency???)!
-            config = nodes[adjacency[s_ind][ni]].config #neighbor's configuration
-            if not planning.validPath(s.config, config)
+            config = nodes[adjacency[s_ind][ni]] #neighbor's configuration
+            if not planning.validPath(s.config, config, 10):
                 continue
             if not Closed.check(config):
                 if not fringe.check(config): #theta):
-                    n = anode.Node(config, s, heur(config, goal)
+                    n = anode.Node(config, s, heur(config, goal))
                     fringe.insert(n)
               #update n so its parent is s.
                 if fringe.update(s, config, distances[s_ind][ni]):  #What is correct first index for distances?????????????????!!!!!!!!!!
@@ -65,9 +65,6 @@ def main():
         if sys.argv[i] == "-n" or sys.argv[i] == "-num" or sys.argv[i] == "-number":
             num = int(sys.argv[i+1])
             i=i+1
-        elif sys.argv[i] == "-map" or sys.argv[i] == "-m":
-            mapn = sys.argv[i+1]
-            i = i+1
         elif sys.argv[i] == "-ros" or sys.argv[i] == "-r":
             ros = True
         elif sys.argv[i] == "-RRT" or sys.argv[i] == "-rrt":
@@ -75,18 +72,16 @@ def main():
         elif sys.argv[i] == "-nnodes":
             nnodes = int(sys.argv[i+1])
     #runAStar will return goal node if there's a path to goal from start
-    if not ros:
-        filename = "map_" + str(mapn) + ".txt"
-    else: filename = "/home/steven/catkin_ws/src/turtlebot_maps/map_" + str(mapn) + ".txt"
+
     plt.xlim(0, 5)
     plt.ylim(0, 5)
     plt.xticks(np.arange(0, 5, 1))
     plt.yticks(np.arange(0, 5, 1))
     if not rrt:
-        twoDnodes, twoDadjacency, twoDdistances = PRM.PianoPRM(nnodes)
-        twoDnodes, twoDadjacency, twoDdistances, startIndex, goalIndex = PRM.startAndGoal2DPRM(twoDnodes, twoDadjacency, twoDdistances, (1.1, 2.2, 0, 0, 0, 0), (3.3, 4.4, 0, 0, 0, 0))
-        Start = anode.Node(twoDnodes[startIndex].config, 0, None, 0)
-        Goal = (twoDnodes[goalIndex].config)
+        twoDnodes, twoDadjacency, twoDdistances = PRM.PRMPiano(nnodes)
+        twoDnodes, twoDadjacency, twoDdistances, startIndex, goalIndex = PRM.addStartandGoalPiano(twoDnodes, twoDadjacency, twoDdistances, (5.0, 9.0, 0, 0, 0, 0, 0), (4.0, 4.0, 0, 0, 0, 0, 0))
+        Start = anode.Node(twoDnodes[startIndex], None, 0)
+        Goal = (twoDnodes[goalIndex])
     else:
         #FIX RRT
         twoDnodes, twoDadjacency = RRT.RRT2D(Start, (5,5), nnodes, 0.2)
