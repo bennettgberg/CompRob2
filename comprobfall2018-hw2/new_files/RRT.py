@@ -32,6 +32,88 @@ def getNewPt(ogpt, randpt, dq):
     dy = dq * math.sin(alpha)
     return (ogpt[0]+dx, ogpt[1]+dy)
 
+#takes in a start and goal node, number of expansions, maximum space between 
+#state nodes take the form (x,y,theta)    
+#start is an x, y, theta
+#goal is a goal x,y polygon with clockwise vertices
+def RRTROS(start, goal, N, dq):
+    #gazebo limits
+    MAXV=17.8816 #m/s: maximum tangential velocity
+    MAXSTEER=244.8696 #rad/s: maximum steering acceleration
+    MAXANGLE=0.785398163 #rad: maximum steering angle
+    maxTimeStep=dq/MAXV
+    #car x, y, theta
+    carConfigs=[]
+    #stores the tangential velocity, angular velocity, and time used to get here from the parent
+    carSpeeds=[]
+    addSpeed=carSpeeds.append
+    addConfig=carConfigs.append
+    carAdjacency=[]
+    carDistances=[]
+    goalPoly=geo.Polygon(goal)
+    #creates the actual obstacles form the website
+    polys=[]
+    vertices=[(1.2,6.5),(1.5,6.5),(1.5,-1.5),(1.2,-1.5)]
+    polys.append(geo.Polygon(vertices))
+    vertices=[(6,2.9),(6.3,2.9),(6.3,-4.2),(6,-4.2)]
+    polys.append(geo.Polygon(vertices))
+    vertices=[(-4.2,1),(-4.2,-7.5),(-4.5,-7.5),(-4.5,1)]
+    polys.append(geo.Polygon(vertices))
+    #adds initial conditions
+    addConfig((start[0],start[1],start[2]))
+    addSpeed((0,0,0))
+    i = 0 
+    while i < N:          
+        x=-1
+        y=-1
+        carDistances.append([])
+        carAdjacency.append([])
+        #gets a valid X and Y in the boundary of the actual world, eliminates points that are obviously inside obstacles
+        while(True):
+            pointCheck=True
+            (x,y)=planning.sample2D(19,14)
+            (x,y)=(x-9,y-7.5)
+            tmpPt=geo.Point((x,y))
+            for polyIndex in range(0,len(polys)):
+                if polys[polyIndex].contains(tmpPt):
+                    pointCheck=False
+            if pointCheck is True:
+                break
+            pointCheck=True  
+        #need to use the quiver function to actually show orientation    
+        plt.plot(x,y,'r.')
+        #addConfig((x,y))
+        j=0
+        #Get closest existing node 
+        newpt = None
+        minD = float('inf')
+        closej = 0
+        """for j in range(i+1):
+            (newx, newy) = planning.getNewPt((carConfigs[j][0],carConfigs[j][1]), (x,y), dq)
+            lineArgs=[(carConfigs[j][0],carConfigs[j][1]), (newx, newy)]
+            tempLine=geo.LineString(lineArgs) 
+            #if the line in question doesn't intesect the obstacle
+            polyCheck=True
+            for polyIndex in range(0,len(polys)):
+                if polys[polyIndex].contains(tempLine) or tempLine.crosses(polys[polyIndex]):
+                    polyCheck=False
+                    break
+            if polyCheck: 
+                dist = twoDdistances(twoDnodes[j],(x,y))        
+                if dist < minD:
+                    minD=dist
+                    closej = j
+                    newpt = (newx, newy)
+        if newpt == None:
+            continue
+        twoDnodes.append(newpt)
+        twoDadjacency[i].append(closej)
+        twoDadjacency[closej].append(i)
+        i += 1"""
+    return 0    
+    
+    
+
 #creates a 2D RRT for testing the algorithm: will be deleted from final code
 #returns an array of nodes, a 2D array of indices the node at the row's index is connected to, and a distances array corresponding to these connections
 #start: (x, y) for start state. goal: (x, y) for goal state. N: number of nodes to have in the RRT. dq: distance between each node in the RRT.
@@ -54,7 +136,7 @@ def RRT2D(start, goal, N, dq):
     polys.append(geo.Polygon(vertices))
     vertices=[(-4.2,1),(-4.2,-7.5),(-4.5,-7.5),(-4.5,1 )]
     polys.append(geo.Polygon(vertices))
-    addNode((start.x, start.y))
+    addNode((start[0], start[1]))
     i = 0
     while i < N:          
         x=-1
