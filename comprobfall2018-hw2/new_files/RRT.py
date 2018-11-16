@@ -5,6 +5,7 @@ Created on Sat Nov 10 16:49:08 2018
 @author: Mike Nitzsche
 """
 import numpy.random as rand
+import planning
 import numpy as np
 import shapely.geometry as geo
 import matplotlib.pyplot as plt
@@ -24,7 +25,7 @@ def RRTacker(dq):
 
 #returns coordinates of new point in RRT
 #ogpt: (x,y) of point in the RRT. randpt: (x,y) of the random point (expand in this direction). dq: distance between points.
-def getNew(ogpt, randpt, dq):
+def getNewPt(ogpt, randpt, dq):
     m = (randpt[1] - ogpt[1] ) / (randpt[0] - ogpt[0])
     alpha = math.atan(m)
     dx = dq * math.cos(alpha)
@@ -35,14 +36,24 @@ def getNew(ogpt, randpt, dq):
 #returns an array of nodes, a 2D array of indices the node at the row's index is connected to, and a distances array corresponding to these connections
 #start: (x, y) for start state. goal: (x, y) for goal state. N: number of nodes to have in the RRT. dq: distance between each node in the RRT.
 #returns: (list of nodes in the RRT, accompanying adjacency list of lists of indices)
+#World bounds: (10, 6.5), (10, -7.5), (-9, -7.5), (-9, 6.5)
+#(6,2.9) (6.3,2.9) (6.3,-4.2) (6,-4.2)
+#(1.2,6.5) (1.5,6.5)  (1.5,-1.5) (1.2,-1.5)
+#(-4.2,1) (-4.2,-7.5) (-4.5,-7.5) (-4.5,1 )     
 def RRT2D(start, goal, N, dq): 
     #a list of 2D tuples representing x and y values of node  
     twoDnodes=[]
     addNode = twoDnodes.append
     twoDadjacency=[]
     twoDdistances=[]
-    vertices=[(1,1),(1,2),(2,2),(2,1)]
-    poly1=geo.Polygon(vertices)
+    polys=[]
+    #creates the actual obstacles form the website
+    vertices=[(1.2,6.5),(1.5,6.5),(1.5,-1.5),(1.2,-1.5)]
+    polys.append(geo.Polygon(vertices))
+    vertices=[(6,2.9),(6.3,2.9),(6.3,-4.2),(6,-4.2)]
+    polys.append(geo.Polygon(vertices))
+    vertices=[(-4.2,1),(-4.2,-7.5),(-4.5,-7.5),(-4.5,1 )]
+    polys.append(geo.Polygon(vertices))
     addNode((start.x, start.y))
     i = 0
     while i < N:          
@@ -50,8 +61,9 @@ def RRT2D(start, goal, N, dq):
         y=-1
         twoDadjacency.append([])
         twoDdistances.append([])
-        #gets a valid X and Y
-        (x,y)=sample2D(5,5) #doesn't matter if there's a collision because we're just going dq in the direction of this point.
+        #gets a valid X and Y in the boundary of the actual world
+        (x,y)=planning.sample2D(19,14)#doesn't matter if there's a collision because we're just going dq in the direction of this point.
+        (x,y)=(x-9,y-7.5)
         plt.plot(x,y,'r.')
         addNode((x,y))
         j=0
@@ -60,12 +72,17 @@ def RRT2D(start, goal, N, dq):
         minD = float('inf')
         closej = 0
         for j in range(i+1):
-            (newx, newy) = getNew(twoDnodes[j], (x,y), dq)
+            (newx, newy) = planning.getNew(twoDnodes[j], (x,y), dq)
             lineArgs=[twoDnodes[j], (newx, newy)]
             tempLine=geo.LineString(lineArgs) 
             #if the line in question doesn't intesect the obstacle
-            if not (poly1.contains(tempLine) or tempLine.crosses(poly1)): 
-                dist = twoDdist(twoDnodes[j],(x,y))        
+            polyCheck=True
+            for polyIndex in range(0,len(polys)):
+                if polys[polyIndex].contains(tempLine) or tempLine.crosses(polys[polyIndex]):
+                    polyCheck=False
+                    break
+            if polyCheck: 
+                dist = twoDdistances(twoDnodes[j],(x,y))        
                 if dist < minD:
                     minD=dist
                     closej = j
@@ -80,9 +97,15 @@ def RRT2D(start, goal, N, dq):
 
 
 def RRT2Dshow(twoDnodes,twoDadjacency):
-    polyXs=[1,1,2,2]
-    polyYs=[1,2,2,1]
+    polyXs=[1.2,1.5,1.5,1.2]
+    polyYs=[6.5,6.5,-1.5,-1.5]
     plt.fill(polyXs,polyYs)
+    polyXs=[6,6.3,6.3,6]
+    polyYs=[2.9,2.9,-4.2,-4.2]
+    plt.fill(polyXs,polyYs)   
+    polyXs=[-4.2,-4.2,-4.5,-4.5]
+    polyYs=[1,-7.5,-7.5,1]
+    plt.fill(polyXs,polyYs)    
     for i in range(0,len(twoDadjacency)-1):
         for j in range(i,len(twoDadjacency[i])):
             if twoDadjacency[i][j]>i:
