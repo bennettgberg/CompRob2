@@ -51,7 +51,7 @@ def sampleRRTPt(xmax,ymax,shift,polys):
 #goal is a goal (x,y) polygon with clockwise vertices
 #N is the maximum number of samples: terminates before that if a goal state is found
 #greedy is True or False
-def randomRRTROS(start, goal, N, greedy):
+def RRTROS(start, goal, N, greedy):
     #gazebo limits
     #MAXV=17.8816 #m/s: maximum tangential velocity
     #MAXSTEER=244.8696 #rad/s: maximum steering angle velocity
