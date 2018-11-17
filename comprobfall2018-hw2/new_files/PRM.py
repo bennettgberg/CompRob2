@@ -164,7 +164,7 @@ def addStartandGoalPiano(pianoNodes, pianoAdjacency, pianoDistances, startConfig
                             kDists.pop()
                             kIndices.pop()
                             #updates the new farthest distance
-                            farD=kDists[k-1]                            
+                            farD=kDists[len(kDists)-1]                            
                             break
 
         #adds the edges we found to the lists            

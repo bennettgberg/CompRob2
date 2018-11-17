@@ -44,8 +44,8 @@ def runAStar(Start, goal, nodes, adjacency, distances):
             config = nodes[adjacency[s_ind][ni]] #neighbor's configuration
             if not planning.validPath(s.config, config, 10):
                 continue
-            if not Closed.check(config):
-                if not fringe.check(config): #theta):
+            if not Closed.check(*config):
+                if not fringe.check(*config): #theta):
                     n = anode.Node(config, s, heur(config, goal))
                     fringe.insert(n)
               #update n so its parent is s.
@@ -80,7 +80,7 @@ def main():
     plt.yticks(np.arange(0, 5, 1))
     if not rrt:
         twoDnodes, twoDadjacency, twoDdistances = PRM.PRMPiano(nnodes)
-        twoDnodes, twoDadjacency, twoDdistances, startIndex, goalIndex = PRM.addStartandGoalPiano(twoDnodes, twoDadjacency, twoDdistances, (5.0, 9.0, 0, 0, 0, 0, 0), (4.0, 4.0, 0, 0, 0, 0, 0))
+        twoDnodes, twoDadjacency, twoDdistances, startIndex, goalIndex = PRM.addStartandGoalPiano(twoDnodes, twoDadjacency, twoDdistances, (5.0, 9.0, 0, 1, 0, 0, 0), (4.0, 4.0, 0, 1, 0, 0, 0))
         Start = anode.Node(twoDnodes[startIndex], None, 0)
         Goal = (twoDnodes[goalIndex])
     else:

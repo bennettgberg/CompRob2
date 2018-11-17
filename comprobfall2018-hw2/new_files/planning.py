@@ -158,6 +158,7 @@ def quatSLERP(Q1,Q2,f):
     for i in range(0,4):
         Qmag+=Q[i]**2
     Qmag=np.sqrt(Qmag)
+    if Qmag==0: Qmag=1
     for i in range(0,4):
         Q[i]=Q[i]/Qmag
     return (Q[0],Q[1],Q[2],Q[3])
