@@ -67,8 +67,6 @@ def randomRRTROS(start, goal, N, greedy):
     addParent=carParents.append
     #children of each node: will be size N-=1
     carChildren=[]
-    #distance between each pair of nodes
-    carDistances=[]
     goalRegionPoly=geo.Polygon(goal)
     #creates the actual obstacles form the website
     polys=[]
@@ -87,7 +85,6 @@ def randomRRTROS(start, goal, N, greedy):
     while i < N:          
         x=-1
         y=-1
-        carDistances.append([])
         carChildren.append([])
         (x,y)=sampleRRTPt(19,14,(-9,-7.5),polys)
         #addConfig((x,y))
@@ -101,8 +98,11 @@ def randomRRTROS(start, goal, N, greedy):
         while True:
             for j in range(i+1):
                 if greedy:
+                    #defines a 90 degree arc towards the bottom left corner where the car is not allowed to go\
+                    relativeX=x-carConfigs[j][0]
                     
-                dist = carDistances(carConfigs[j],(x,y))   
+                    derp=0
+                dist = planning.twoDdistance((carConfigs[j][0],carConfigs[j][1]),(x,y))   
                 #sees if it's close enough to even be worth checking
                 if dist >= minD:
                     continue
@@ -133,7 +133,7 @@ def randomRRTROS(start, goal, N, greedy):
         #adds a parent link from the closest node to the new node
         addParent(closej)
         #adds this node as a child for row closej
-        carChildren[closej].append()            
+        carChildren[closej].append()      
         #interfaces a few test controls with gazebo, returns the best one    
         (newConfig,newControls)=RRTSampleControls(carConfigs[j],(newx,newy))
         addConfig(newConfig)
@@ -141,7 +141,7 @@ def randomRRTROS(start, goal, N, greedy):
         if not goalFound:
             goalPt=geo.Point(newConfig[0],newConfig[1])
             if goalRegionPoly.contains(goalPt):
-                goalIndex=i
+                goalIndex=j
                 goalFound=True
         i += 1
     return 0    
