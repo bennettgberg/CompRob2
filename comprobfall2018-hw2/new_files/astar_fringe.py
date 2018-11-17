@@ -33,7 +33,7 @@ class Fringe:
         
     """Uses the open dictionary to update nodes in the fringe heap/dict
         returns true if it updated, false if it remained the same"""    
-    def update(self,parent, x,y,z,w,i,j,k, distance):
+    def update(self,parent, distance, x,y,z,w,i,j,k):
         ind = planning.key((x, y, z, w, i, j, k)) 
         updateNode = self.fringeDict[ind]
         newG = parent.g + distance 

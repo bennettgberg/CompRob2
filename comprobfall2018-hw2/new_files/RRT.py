@@ -15,10 +15,10 @@ import math
 
 import rospy
 import publisher
+from gazebo_msgs.srv import SetModelState, GetModelState
 from gazebo_msgs.msg import ModelState, ModelStates
 import geometry_msgs.msg
-import tf.transformations
-
+from tf.transformations import euler_from_quaternion
 
 def sampleRRTPt(xmax,ymax,shift,polys):
     #gets a valid X and Y in the boundary of the actual world, eliminates points that are obviously inside obstacles
@@ -100,9 +100,9 @@ def RRTROS(start, goal, N, greedy):
                         (x1,y1)=sampleRRTPt(19,14,(-9,-7.5),polys)
                         if planning.twoDdist((x1,y1),(10,8.5))<plannng.twoDdist((x,y),(10,6.5)):
                             (x,y)=(x1,y1)
-                    print("greedy algorithm sampled x="+ num2str(x)+" y="+num2str(y))
+                    print("greedy algorithm sampled x="+ str(x) +" y="+ str(y))
                 else:
-                    print("testing with point x="+ num2str(x)+" y="+num2str(y))
+                    print("testing with point x=" + str(x) +" y="+ str(y))
                 dist = planning.twoDdist((carConfigs[j][0],carConfigs[j][1]),(x,y))   
                 #sees if it's close enough to even be worth checking
                 if dist >= minD:
@@ -131,7 +131,7 @@ def RRTROS(start, goal, N, greedy):
                 (x,y)=sampleRRTPt(19,14,(-9,-7.5),polys)
             else:
                 break
-            print("Confirmed Valid Point x="+ num2str(x)+" y="+num2str(y))
+            print("Confirmed Valid Point x="+ str(x) +" y="+ str(y))
         #adds a parent link from the closest node to the new node
         addParent(closej)
         #adds this node as a child for row closej
@@ -139,7 +139,7 @@ def RRTROS(start, goal, N, greedy):
         #interfaces a few test controls with gazebo, returns the best one 
         print("sampling controls from Gazebo")   
         (newConfig,newControls)=RRTSampleControls(carConfigs[j],(newx,newy))
-        print("found valid controls"+newControls)
+        print("found valid controls: {}".format(newControls))
         addConfig(newConfig)
         addControls(newControls)
         if not goalFound:
@@ -153,6 +153,12 @@ def RRTROS(start, goal, N, greedy):
         i += 1
     return carConfigs, carControls, carChildren,carParents, goalIndex
  
+# def ackermann_model_state(msg):
+
+#     model_state_x = msg.pose[2].position.x
+#     model_state_y = msg.pose[2].position.y
+#     model_state_quaternion = [msg.pose[2].orientation.x, msg.pose[2].orientation.y, msg.pose[2].orientation.z, msg.pose[2].orientation.w]
+#     # print(model_state_x, model_state_y, model_state_theta)
 
 #from the initial state, samples X controls and returns the set of controls that gets the closest, as well as the final location
 #odd is 1 or 0, prevents it from veering
@@ -165,34 +171,43 @@ def RRTSampleControls(startConfig,goalLoc):
 
     global model_state_x
     global model_state_y
-    global model_state_theta
+    global model_state_quaternion
+
     rospy.init_node("ackermann_model_state_subscriber", anonymous=True)
     for derp in range(0,5):
         #time to propagate this control
-        timeStep=rand.rand()*.32+.1
+        # timeStep=rand.rand()*.32+.1
         #steering angle
         steeringAngle=rand.rand()*.78
+
+        steeringAngleVelocity=4
         #tangent velocity
-        velocity=rand.rand()*15
+        # velocity=rand.rand()*15
+
+        timeStep=0.1
+
+        #tangent velocity
+        velocity=15
+
 
         #Publishing controls to publisher
-        publisher.ackermann_publisher(velocity, steeringAngle, acc, jerk, timeStep)
-        sub = rospy.Subscriber("/gazebo/model_states", ModelStates, ackermann_model_state)
+        client = rospy.ServiceProxy('/gazebo/get_model_state', GetModelState)
+        msg = client("ackermann_vehicle","")
+        model_state_x = msg.pose.position.x
+        model_state_y = msg.pose.position.y
+        model_state_quaternion = [msg.pose.orientation.x, msg.pose.orientation.y, msg.pose.orientation.z, msg.pose.orientation.w]
+        (model_state_roll,model_state_pitch,model_state_theta) = euler_from_quaternion(model_state_quaternion)
+
+        # publisher.ackermann_publisher(velocity, steeringAngle, steeringAngleVelocity, acc, jerk, timeStep)
+        # sub = rospy.Subscriber("/gazebo/model_states", ModelStates, ackermann_model_state)
+        rospy.sleep(1)
 
         newDist=planning.twoDdist((startConfig[0],startConfig[1]),(model_state_x, model_state_y))
         if newDist<minDist:
             minDist=newDist
-            newConfig=(newX,newY,newTheta)
+            newConfig=(model_state_x,model_state_y,model_state_theta)
             newControls=(velocity,steeringAngle,timeStep)
     return newConfig,newControls
-
-def ackermann_model_state(msg):
-
-    model_state_x = msg.pose.position.x
-    model_state_y = msg.pose.position.y
-
-    model_state_quaternion = msg.pose.orientation
-    (model_state_roll,model_state_pitch,model_state_theta) = tf.transformations.euler_from_quaternion([quaternion.x,quaternion.y,quaternion.z,quaternion.w])
 
 
 def RRT2DshowSolution(carSolutionConfigs):
