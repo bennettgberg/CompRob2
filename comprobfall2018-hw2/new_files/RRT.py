@@ -10,18 +10,9 @@ import numpy as np
 import shapely.geometry as geo
 import matplotlib.pyplot as plt
 import matplotlib.patches as ptc
+import matplotlib.axes.Axes.arrow as arrow
 import math
 
-#returns a RRT roadmap with separation dq between nodes
-def RRTacker(dq):
-    #a list of nodes
-    nodes=[]
-    #if you assign it to a variable, it cuts the runtime in half
-    #addNode = node.append
-    #the adjacency list: indicates which nodes in the first list are connected to the others
-    adjacency=[]
-    nodeGroups=[]
-    return 0
 
 def sampleRRTPt(xmax,ymax,shift,polys):
     #gets a valid X and Y in the boundary of the actual world, eliminates points that are obviously inside obstacles
@@ -101,7 +92,7 @@ def RRTROS(start, goal, N, greedy):
                     #samples two new points, compares to old sample and picks the one closest to the goal
                     for q in range(0,1):
                         (x1,y1)=sampleRRTPt(19,14,(-9,-7.5),polys)
-                        if twoDdistance((x1,y1),(10,8.5))<twoDdistance((x,y),(10,6.5)):
+                        if planning.twoDdistance((x1,y1),(10,8.5))<plannng.twoDdistance((x,y),(10,6.5)):
                             (x,y)=(x1,y1)
                 dist = planning.twoDdistance((carConfigs[j][0],carConfigs[j][1]),(x,y))   
                 #sees if it's close enough to even be worth checking
@@ -176,7 +167,7 @@ def RRTSampleControls(startConfig,goalLoc):
     return newConfig,newControls
 
 
-def RRT2Dshow(twoDnodes,twoDadjacency):
+def RRT2DshowSolution(carSolutionConfigs):
     polyXs=[1.2,1.5,1.5,1.2]
     polyYs=[6.5,6.5,-1.5,-1.5]
     plt.fill(polyXs,polyYs)
@@ -186,13 +177,34 @@ def RRT2Dshow(twoDnodes,twoDadjacency):
     polyXs=[-4.2,-4.2,-4.5,-4.5]
     polyYs=[1,-7.5,-7.5,1]
     plt.fill(polyXs,polyYs)    
-    for i in range(0,len(twoDadjacency)-1):
-        for j in range(i,len(twoDadjacency[i])):
-            if twoDadjacency[i][j]>i:
-                pt1=twoDnodes[i]
-                pt2=twoDnodes[twoDadjacency[i][j]]
-                ys=[pt1[1],pt2[1]]
-                xs=[pt1[0],pt2[0]]
-                plt.plot(xs,ys,'red',linestyle='dashed')    
+    for i in range(0,len(carSolutionConfigs)-1):
+                x=carSolutionConfigs[i][0]
+                x1=carSolutionConfigs[i+1][0]
+                y=carSolutionConfigs[i][1]
+                y1=carSolutionConfigs[i+1][1]
+                theta=carSolutionConfigs[i][2]
+                #plots the configuration at each point along the path as an arrow
+                dy=np.sin(theta)*.05
+                dx=np.cos(theta)*.05
+                arrow(x, y, dx, dy)
+                #plots the path taken. Very obviously wrong because we don't curve it, but I don't feel like splining this
+                xs=[x,x1]
+                ys=[y,y1]
+                plt.plot(xs,ys,'blue',linestyle='dashed')    
+    plt.show()
     return(0)
 
+def main():
+    start=(-7.5,-7,.5*np.pi())
+    goal=[(10,6.5),(10,4.5),(8,4.5),(8,6.5)]
+    (carConfigs, carControls, carChildren,carParents, goalIndex)=RRTROS(start, goal, 250, False)
+    index=goalIndex
+    solution=[]
+    #traces up the tree and appends every node as it is found
+    while(index is not 0):
+        solution.insert(0,carConfigs[index])
+        index=carParents[index]
+    return 0
+
+if __name__ == "__main__":
+    main()
