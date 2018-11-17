@@ -30,7 +30,7 @@ def ackermann_publisher(speed, steering_angle, acceleration, jerk, time_step):
 		pub.publish(state)
 		rate.sleep();
 
-def ackermann_model_state(msg)
+def ackermann_model_state(msg):
     global model_state_x
     global model_state_y
     global model_state_theta
@@ -40,9 +40,6 @@ def ackermann_model_state(msg)
 
     model_state_quaternion = msg.pose.orientation
     (model_state_roll,model_state_pitch,model_state_theta) = tf.transformations.euler_from_quaternion([quaternion.x,quaternion.y,quaternion.z,quaternion.w])
-
-rospy.init_node("ackermann_model_state_subscriber")
-sub = rospy.Subscriber("/gazebo/model_states", ModelStates, ackermann_model_state)
 
 
 def model_state_publisher(pose, twist=geometry_msgs.msg.Twist(geometry_msgs.msg.Vector3(0,0,0), geometry_msgs.msg.Vector3(0,0,0))):

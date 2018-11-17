@@ -10,7 +10,7 @@ import numpy as np
 import shapely.geometry as geo
 import matplotlib.pyplot as plt
 import matplotlib.patches as ptc
-import matplotlib.axes.Axes.arrow as arrow
+# import matplotlib.axes.Axes as axes
 import math
 
 import rospy
@@ -170,7 +170,7 @@ def RRTSampleControls(startConfig,goalLoc):
         #Publishing controls to publisher
         publisher.ackermann_publisher(velocity, steeringAngle, acc, jerk, timeStep)
         sub = rospy.Subscriber("/gazebo/model_states", ModelStates, ackermann_model_state)
-        
+
         newDist=planning.twoDdist((startConfig[0],startConfig[1]),(model_state_x, model_state_y))
         if newDist<minDist:
             minDist=newDist
@@ -178,7 +178,7 @@ def RRTSampleControls(startConfig,goalLoc):
             newControls=(velocity,steeringAngle,timeStep)
     return newConfig,newControls
 
-def ackermann_model_state(msg)
+def ackermann_model_state(msg):
 
     model_state_x = msg.pose.position.x
     model_state_y = msg.pose.position.y
@@ -206,7 +206,7 @@ def RRT2DshowSolution(carSolutionConfigs):
                 #plots the configuration at each point along the path as an arrow
                 dy=np.sin(theta)*.05
                 dx=np.cos(theta)*.05
-                arrow(x, y, dx, dy)
+                # axes.arrow(x, y, dx, dy)
                 #plots the path taken. Very obviously wrong because we don't curve it, but I don't feel like splining this
                 xs=[x,x1]
                 ys=[y,y1]
@@ -215,7 +215,7 @@ def RRT2DshowSolution(carSolutionConfigs):
     return(0)
 
 def main():
-    start=(-7.5,-7,.5*np.pi())
+    start=(-7.5,-7,.5*np.pi)
     goal=[(10,6.5),(10,4.5),(8,4.5),(8,6.5)]
     (carConfigs, carControls, carChildren,carParents, goalIndex)=RRTROS(start, goal, 250, False)
     index=goalIndex
