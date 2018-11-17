@@ -80,26 +80,27 @@ def randomRRTROS(start, goal, N, dq):
     polys.append(geo.Polygon(vertices))
     #adds initial conditions
     addConfig((start[0],start[1],start[2]))
-    addControl(None)    
+    addControls(None)    
     i = 0 
+    goalFound=False
+    goalIndex=None
     while i < N:          
         x=-1
         y=-1
         carDistances.append([])
-        carChilren.append([])
+        carChildren.append([])
         (x,y)=sampleRRTPt(19,14,(-9,-7.5),polys)
         #addConfig((x,y))
         j=0
         #Get closest existing node 
         newx=None
-        newY=None
         minD = float('inf')
         closej = 0
         #finds nearest existing that doesn't obviously intersect with an obstacle
         #if there are none, resamples the point and tries again
         while True:
             for j in range(i+1):
-                dist = twoDdistances(twoDnodes[j],(x,y))   
+                dist = carDistances(carConfigs[j],(x,y))   
                 #sees if it's close enough to even be worth checking
                 if dist >= minD:
                     continue
@@ -116,7 +117,7 @@ def randomRRTROS(start, goal, N, dq):
                         minD=dist
                         closej=j 
                         (newx,newy) = (x, y) 
-            if newpt == None:
+            if newx == None:
                 (newx,newy)=sampleRRTPt(19,14,(-9,-7.5),polys)
             else:
                 break
@@ -128,12 +129,20 @@ def randomRRTROS(start, goal, N, dq):
         (newConfig,newControls)=RRTSampleControls(carConfigs[j],(newx,newy))
         addConfig(newConfig)
         addControls(newControls)
+        if not goalFound:
+            goalPt=geo.Point(newConfig[0],newConfig[1])
+            if goalRegionPoly.contains(goalPt):
+                goalIndex=i
+                goalFound=True
         i += 1
     return 0    
-    
+ 
 def heuristicRRTROS():
-return 0    
+    return 0    
 
+
+def RRTSampleControls(startConfig,goalLoc):
+    return 0,0
 #creates a 2D RRT for testing the algorithm: will be deleted from final code
 #returns an array of nodes, a 2D array of indices the node at the row's index is connected to, and a distances array corresponding to these connections
 #start: (x, y) for start state. goal: (x, y) for goal state. N: number of nodes to have in the RRT. dq: distance between each node in the RRT.
