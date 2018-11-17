@@ -100,11 +100,18 @@ def RRTROS(start, goal, N, greedy):
         while True:
             for j in range(i+1):
                 if greedy:
+                    #we decided this was a shit algorithm but I'm leaving it here in case we want to try that later
                     #defines a 90 degree arc towards the bottom left corner where the car is not allowed to go
-                    relativeX=x-carConfigs[j][0]
-                    relativeY=y-carConfigs[j][1]
-                    if relativeY<0 and relativeX<0:
-                        continue
+                    #relativeX=x-carConfigs[j][0]
+                    #relativeY=y-carConfigs[j][1]
+                    #if relativeY<0 and relativeX<0:
+                    #    continue
+            
+                    #samples two new points, compares to old sample and picks the one closest to the goal
+                    for q in range(0,1):
+                        (x1,y1)=sampleRRTPt(19,14,(-9,-7.5),polys)
+                        if twoDdistance((x1,y1),(10,8.5))<twoDdistance((x,y),(10,8.5)):
+                            (x,y)=(x1,y1)
                 dist = planning.twoDdistance((carConfigs[j][0],carConfigs[j][1]),(x,y))   
                 #sees if it's close enough to even be worth checking
                 if dist >= minD:
@@ -155,19 +162,17 @@ def RRTROS(start, goal, N, greedy):
 #odd is 1 or 0, prevents it from veering
 #startConfig is a tuple (x,y,theta) for the car
 #goalLoc is (x,y)
-def RRTSampleControls(startConfig,goalLoc,evenOrOdd):
+def RRTSampleControls(startConfig,goalLoc):
     acc=12
     jerk=8
-    if evenOrOdd is 1:
-        LR=-1
     else:
         LR=1
     minDist=float('inf')
     for derp in range(0,5):
         #time to propagate this control
-        timeStep=rand.rand()*.5+.25
+        timeStep=rand.rand()*.32+.1
         #steering angle
-        steeringAngle=rand.rand()*.78*LR
+        steeringAngle=rand.rand()*.78
         #tangent velocity
         velocity=rand.rand()*15
         """STEVEN: RUN THIS CONTROL, store the final state in newX,newY,newTheta"""
