@@ -98,9 +98,11 @@ def randomRRTROS(start, goal, N, greedy):
         while True:
             for j in range(i+1):
                 if greedy:
-                    #defines a 90 degree arc towards the bottom left corner where the car is not allowed to go\
+                    #defines a 90 degree arc towards the bottom left corner where the car is not allowed to go
                     relativeX=x-carConfigs[j][0]
-                    
+                    relativeY=y-carConfigs[j][1]
+                    if relativeY<0 and relativeX<0:
+                        continue
                     derp=0
                 dist = planning.twoDdistance((carConfigs[j][0],carConfigs[j][1]),(x,y))   
                 #sees if it's close enough to even be worth checking
