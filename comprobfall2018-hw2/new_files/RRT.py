@@ -13,6 +13,12 @@ import matplotlib.patches as ptc
 import matplotlib.axes.Axes.arrow as arrow
 import math
 
+import rospy
+import publisher
+from gazebo_msgs.msg import ModelState, ModelStates
+import geometry_msgs.msg
+import tf.transformations
+
 
 def sampleRRTPt(xmax,ymax,shift,polys):
     #gets a valid X and Y in the boundary of the actual world, eliminates points that are obviously inside obstacles
@@ -148,6 +154,11 @@ def RRTSampleControls(startConfig,goalLoc):
     acc=12
     jerk=8
     minDist=float('inf')
+
+    global model_state_x
+    global model_state_y
+    global model_state_theta
+    rospy.init_node("ackermann_model_state_subscriber")
     for derp in range(0,5):
         #time to propagate this control
         timeStep=rand.rand()*.32+.1
@@ -155,16 +166,25 @@ def RRTSampleControls(startConfig,goalLoc):
         steeringAngle=rand.rand()*.78
         #tangent velocity
         velocity=rand.rand()*15
-        """STEVEN: RUN THIS CONTROL, store the final state in newX,newY,newTheta"""
-        newX=0
-        newY=0
-        newTheta=0
-        newDist=planning.twoDdist((startConfig[0],startConfig[1]),(newX,newY))
+
+        #Publishing controls to publisher
+        publisher.ackermann_publisher(velocity, steeringAngle, acc, jerk, timeStep)
+        sub = rospy.Subscriber("/gazebo/model_states", ModelStates, ackermann_model_state)
+        
+        newDist=planning.twoDdist((startConfig[0],startConfig[1]),(model_state_x, model_state_y))
         if newDist<minDist:
             minDist=newDist
             newConfig=(newX,newY,newTheta)
             newControls=(velocity,steeringAngle,timeStep)
     return newConfig,newControls
+
+def ackermann_model_state(msg)
+
+    model_state_x = msg.pose.position.x
+    model_state_y = msg.pose.position.y
+
+    model_state_quaternion = msg.pose.orientation
+    (model_state_roll,model_state_pitch,model_state_theta) = tf.transformations.euler_from_quaternion([quaternion.x,quaternion.y,quaternion.z,quaternion.w])
 
 
 def RRT2DshowSolution(carSolutionConfigs):
@@ -204,6 +224,7 @@ def main():
     while(index is not 0):
         solution.insert(0,carConfigs[index])
         index=carParents[index]
+    RRT2DshowSolution(solution)
     return 0
 
 if __name__ == "__main__":
