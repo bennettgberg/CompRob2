@@ -100,6 +100,9 @@ def RRTROS(start, goal, N, greedy):
                         (x1,y1)=sampleRRTPt(19,14,(-9,-7.5),polys)
                         if planning.twoDdist((x1,y1),(10,8.5))<plannng.twoDdist((x,y),(10,6.5)):
                             (x,y)=(x1,y1)
+                    print("greedy algorithm sampled x="+ num2str(x)+" y="+num2str(y))
+                else:
+                    print("testing with point x="+ num2str(x)+" y="+num2str(y))
                 dist = planning.twoDdist((carConfigs[j][0],carConfigs[j][1]),(x,y))   
                 #sees if it's close enough to even be worth checking
                 if dist >= minD:
@@ -128,19 +131,24 @@ def RRTROS(start, goal, N, greedy):
                 (x,y)=sampleRRTPt(19,14,(-9,-7.5),polys)
             else:
                 break
+            print("Confirmed Valid Point x="+ num2str(x)+" y="+num2str(y))
         #adds a parent link from the closest node to the new node
         addParent(closej)
         #adds this node as a child for row closej
         carChildren[closej].append(i)
-        #interfaces a few test controls with gazebo, returns the best one    
+        #interfaces a few test controls with gazebo, returns the best one 
+        print("sampling controls from Gazebo")   
         (newConfig,newControls)=RRTSampleControls(carConfigs[j],(newx,newy))
+        print("found valid controls"+newControls)
         addConfig(newConfig)
         addControls(newControls)
         if not goalFound:
+            print("checking if a goal node was found")
             goalPt=geo.Point(newConfig[0],newConfig[1])
             if goalRegionPoly.contains(goalPt):
                 goalIndex=j
                 goalFound=True
+                print("found point in goal region")
                 break
         i += 1
     return carConfigs, carControls, carChildren,carParents, goalIndex
@@ -221,9 +229,11 @@ def main():
     index=goalIndex
     solution=[]
     #traces up the tree and appends every node as it is found
+    print("Solution found, tracing back through the tree")
     while(index is not 0):
         solution.insert(0,carConfigs[index])
         index=carParents[index]
+    #visualizes solution    
     RRT2DshowSolution(solution)
     return 0
 
