@@ -82,6 +82,8 @@ def randomRRTROS(start, goal, N, dq):
     addConfig((start[0],start[1],start[2]))
     addControl(None)    
     i = 0 
+    goalFound=False
+    goalIndex=None
     while i < N:          
         x=-1
         y=-1
@@ -128,6 +130,11 @@ def randomRRTROS(start, goal, N, dq):
         (newConfig,newControls)=RRTSampleControls(carConfigs[j],(newx,newy))
         addConfig(newConfig)
         addControls(newControls)
+        if not goalFound:
+            goalPt=geo.Point(newConfig[0],newConfig[1])
+            if goal.contains(goalPt):
+                goalIndex=i
+                goalFound=True
         i += 1
     return 0    
     
