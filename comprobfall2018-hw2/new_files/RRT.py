@@ -23,15 +23,6 @@ def RRTacker(dq):
     nodeGroups=[]
     return 0
 
-#returns coordinates of new point in RRT
-#ogpt: (x,y) of point in the RRT. randpt: (x,y) of the random point (expand in this direction). dq: distance between points.
-def getNewPt(ogpt, randpt, dq):
-    m = (randpt[1] - ogpt[1] ) / (randpt[0] - ogpt[0])
-    alpha = math.atan(m)
-    dx = dq * math.cos(alpha)
-    dy = dq * math.sin(alpha)
-    return (ogpt[0]+dx, ogpt[1]+dy)
-
 def sampleRRTPt(xmax,ymax,shift,polys):
     #gets a valid X and Y in the boundary of the actual world, eliminates points that are obviously inside obstacles
     while(True):
@@ -110,7 +101,7 @@ def RRTROS(start, goal, N, greedy):
                     #samples two new points, compares to old sample and picks the one closest to the goal
                     for q in range(0,1):
                         (x1,y1)=sampleRRTPt(19,14,(-9,-7.5),polys)
-                        if twoDdistance((x1,y1),(10,8.5))<twoDdistance((x,y),(10,8.5)):
+                        if twoDdistance((x1,y1),(10,8.5))<twoDdistance((x,y),(10,6.5)):
                             (x,y)=(x1,y1)
                 dist = planning.twoDdistance((carConfigs[j][0],carConfigs[j][1]),(x,y))   
                 #sees if it's close enough to even be worth checking
@@ -165,8 +156,6 @@ def RRTROS(start, goal, N, greedy):
 def RRTSampleControls(startConfig,goalLoc):
     acc=12
     jerk=8
-    else:
-        LR=1
     minDist=float('inf')
     for derp in range(0,5):
         #time to propagate this control
@@ -185,69 +174,6 @@ def RRTSampleControls(startConfig,goalLoc):
             newConfig=(newX,newY,newTheta)
             newControls=(velocity,steeringAngle,timeStep)
     return newConfig,newControls
-
-#creates a 2D RRT for testing the algorithm: will be deleted from final code
-#returns an array of nodes, a 2D array of indices the node at the row's index is connected to, and a distances array corresponding to these connections
-#start: (x, y) for start state. goal: (x, y) for goal state. N: number of nodes to have in the RRT. dq: distance between each node in the RRT.
-#returns: (list of nodes in the RRT, accompanying adjacency list of lists of indices)
-#World bounds: (10, 6.5), (10, -7.5), (-9, -7.5), (-9, 6.5)
-#(6,2.9) (6.3,2.9) (6.3,-4.2) (6,-4.2)
-#(1.2,6.5) (1.5,6.5)  (1.5,-1.5) (1.2,-1.5)
-#(-4.2,1) (-4.2,-7.5) (-4.5,-7.5) (-4.5,1 )     
-def RRT2D(start, goal, N, dq): 
-    #a list of 2D tuples representing x and y values of node  
-    twoDnodes=[]
-    addNode = twoDnodes.append
-    twoDadjacency=[]
-    twoDdistances=[]
-    polys=[]
-    #creates the actual obstacles form the website
-    vertices=[(1.2,6.5),(1.5,6.5),(1.5,-1.5),(1.2,-1.5)]
-    polys.append(geo.Polygon(vertices))
-    vertices=[(6,2.9),(6.3,2.9),(6.3,-4.2),(6,-4.2)]
-    polys.append(geo.Polygon(vertices))
-    vertices=[(-4.2,1),(-4.2,-7.5),(-4.5,-7.5),(-4.5,1 )]
-    polys.append(geo.Polygon(vertices))
-    addNode((start[0], start[1]))
-    i = 0
-    while i < N:          
-        x=-1
-        y=-1
-        twoDadjacency.append([])
-        twoDdistances.append([])
-        #gets a valid X and Y in the boundary of the actual world
-        (x,y)=planning.sample2D(19,14)#doesn't matter if there's a collision because we're just going dq in the direction of this point.
-        (x,y)=(x-9,y-7.5)
-        plt.plot(x,y,'r.')
-        addNode((x,y))
-        j=0
-        #Get closest existing node 
-        newpt = None
-        minD = float('inf')
-        closej = 0
-        for j in range(i+1):
-            (newx, newy) = planning.getNew(twoDnodes[j], (x,y), dq)
-            lineArgs=[twoDnodes[j], (newx, newy)]
-            tempLine=geo.LineString(lineArgs) 
-            #if the line in question doesn't intesect the obstacle
-            polyCheck=True
-            for polyIndex in range(0,len(polys)):
-                if polys[polyIndex].contains(tempLine) or tempLine.crosses(polys[polyIndex]):
-                    polyCheck=False
-                    break
-            if polyCheck: 
-                dist = twoDdistances(twoDnodes[j],(x,y))        
-                if dist < minD:
-                    minD=dist
-                    closej = j
-                    newpt = (newx, newy)
-        if newpt == None:
-            continue
-        twoDnodes.append(newpt)
-        twoDadjacency[i].append(closej)
-        twoDadjacency[closej].append(i)
-        i += 1
-    return twoDnodes, twoDadjacency
 
 
 def RRT2Dshow(twoDnodes,twoDadjacency):
