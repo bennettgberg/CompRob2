@@ -38,7 +38,7 @@ def PRMPiano(N, k=3):
         #NOTE: I do not know what the coordinate system is: negative numbers might be fair game
         #in which case "x<0" is not a valid criterion
         while True:
-            pianoPos=planning.sample6D(10,10,10)
+            pianoPos=planning.sample6D(10,10,5)
             collides = planning.collides(pianoPos[0:3], planning.quatToMatrix(pianoPos[3],pianoPos[4],pianoPos[5],pianoPos[6]))
             if not collides:
                 print("no collision for {}".format(pianoPos))
@@ -60,7 +60,7 @@ def PRMPiano(N, k=3):
         while len(kDists)<k and j<i:
             #if the line in question doesn't intesect the obstacle
             if (planning.validPath(pianoNodes[i], pianoNodes[j], 10)): 
-                dist=planning.distance((pianoNodes[i], pianoNodes[j]))
+                dist=planning.distance(pianoNodes[i], pianoNodes[j])
                 if dist>farD:
                     farD=dist
                 kDists.append(dist)
