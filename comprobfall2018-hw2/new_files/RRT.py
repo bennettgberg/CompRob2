@@ -49,7 +49,7 @@ def sampleRRTPt(xmax,ymax,shift,polys):
 #state nodes take the form (x,y,theta)    
 #start is an x, y, theta
 #goal is a goal (x,y) polygon with clockwise vertices
-def randomRRTROS(start, goal, N, dq):
+def randomRRTROS(start, goal, N, greedy):
     #gazebo limits
     MAXV=17.8816 #m/s: maximum tangential velocity
     MAXSTEER=244.8696 #rad/s: maximum steering angle velocity
@@ -100,6 +100,8 @@ def randomRRTROS(start, goal, N, dq):
         #if there are none, resamples the point and tries again
         while True:
             for j in range(i+1):
+                if greedy:
+                    
                 dist = carDistances(carConfigs[j],(x,y))   
                 #sees if it's close enough to even be worth checking
                 if dist >= minD:
@@ -125,7 +127,7 @@ def randomRRTROS(start, goal, N, dq):
                         closej=j 
                         (newx,newy) = (x, y) 
             if newx == None:
-                (newx,newy)=sampleRRTPt(19,14,(-9,-7.5),polys)
+                (x,y)=sampleRRTPt(19,14,(-9,-7.5),polys)
             else:
                 break
         #adds a parent link from the closest node to the new node
@@ -144,12 +146,34 @@ def randomRRTROS(start, goal, N, dq):
         i += 1
     return 0    
  
-def heuristicRRTROS():
-    return 0    
 
-
-def RRTSampleControls(startConfig,goalLoc):
-    return 0,0
+#from the initial state, samples X controls and returns the set of controls that gets the closest, as well as the final location
+#odd is 1 or 0, prevents it from veering
+def RRTSampleControls(startConfig,goalLoc,evenOrOdd):
+    acc=12
+    jerk=8
+    if evenOrOdd is 1:
+        LR=-1
+    else:
+        LR=1
+    minDist=float('inf')
+    for derp in range(0,5):
+        #time to propagate this control
+        timeStep=rand.rand()*.5+.25
+        #steering angle
+        steeringAngle=rand.rand()*.78*LR
+        #tangent velocity
+        velocity=rand.rand()*15
+        """STEVEN: RUN THIS CONTROL, store the final state in newX,newY,newTheta"""
+        newX=0
+        newY=0
+        newTheta=0
+        newDist=planning.twoDdist((startConfig[0],startConfig[1]),(newX,newY))
+        if newDist<minDist:
+            minDist=newDist
+            newConfig=(newX,newY,newTheta)
+            newControls=(velocity,steeringAngle,timeStep)
+    return newConfig,newControls
 
 #creates a 2D RRT for testing the algorithm: will be deleted from final code
 #returns an array of nodes, a 2D array of indices the node at the row's index is connected to, and a distances array corresponding to these connections
