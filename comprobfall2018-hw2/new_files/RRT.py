@@ -98,9 +98,9 @@ def RRTROS(start, goal, N, greedy):
                     #samples two new points, compares to old sample and picks the one closest to the goal
                     for q in range(0,1):
                         (x1,y1)=sampleRRTPt(19,14,(-9,-7.5),polys)
-                        if planning.twoDdistance((x1,y1),(10,8.5))<plannng.twoDdistance((x,y),(10,6.5)):
+                        if planning.twoDdist((x1,y1),(10,8.5))<plannng.twoDdist((x,y),(10,6.5)):
                             (x,y)=(x1,y1)
-                dist = planning.twoDdistance((carConfigs[j][0],carConfigs[j][1]),(x,y))   
+                dist = planning.twoDdist((carConfigs[j][0],carConfigs[j][1]),(x,y))   
                 #sees if it's close enough to even be worth checking
                 if dist >= minD:
                     continue
@@ -131,7 +131,7 @@ def RRTROS(start, goal, N, greedy):
         #adds a parent link from the closest node to the new node
         addParent(closej)
         #adds this node as a child for row closej
-        carChildren[closej].append()      
+        carChildren[closej].append(i)
         #interfaces a few test controls with gazebo, returns the best one    
         (newConfig,newControls)=RRTSampleControls(carConfigs[j],(newx,newy))
         addConfig(newConfig)
@@ -158,7 +158,7 @@ def RRTSampleControls(startConfig,goalLoc):
     global model_state_x
     global model_state_y
     global model_state_theta
-    rospy.init_node("ackermann_model_state_subscriber")
+    rospy.init_node("ackermann_model_state_subscriber", anonymous=True)
     for derp in range(0,5):
         #time to propagate this control
         timeStep=rand.rand()*.32+.1

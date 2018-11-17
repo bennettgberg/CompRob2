@@ -14,7 +14,7 @@ import ackermann_controller
 
 def ackermann_publisher(speed, steering_angle, acceleration, jerk, time_step):
 	pub = rospy.Publisher("ackermann_cmd", AckermannDrive, queue_size=1)
-	rospy.init_node('ackermann_controller', anonymous=True)
+	# rospy.init_node('ackermann_controller', anonymous=True)
 
 	rate = rospy.Rate(float(1/time_step)) # 1/time_step Hz
 	rospy.sleep(0.5)
@@ -27,8 +27,10 @@ def ackermann_publisher(speed, steering_angle, acceleration, jerk, time_step):
 		state.jerk = jerk
 
 		# rospy.loginfo(state)
+		rospy.loginfo(model_state)
 		pub.publish(state)
-		rate.sleep();
+		rate.sleep()
+		break
 
 def ackermann_model_state(msg):
     global model_state_x

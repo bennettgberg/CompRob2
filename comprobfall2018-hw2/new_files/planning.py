@@ -12,6 +12,8 @@ import matplotlib.patches as ptc
 import rospy
 import math
 import sys
+
+sys.path.append('../')
 from pqp_server.srv import *
 
 def key(config):
