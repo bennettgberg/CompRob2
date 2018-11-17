@@ -114,6 +114,13 @@ def randomRRTROS(start, goal, N, dq):
                         break  
                 #assigns a new minimum distance, saves the index of the closest point    
                 if polyCheck: 
+                        #too close to existing nodes: we bias it to move away
+                        if dist<.5:
+                            newx=None
+                            newy=None
+                            minD=float('inf')
+                            break
+                        #else: adds it to the tree
                         minD=dist
                         closej=j 
                         (newx,newy) = (x, y) 
@@ -143,6 +150,7 @@ def heuristicRRTROS():
 
 def RRTSampleControls(startConfig,goalLoc):
     return 0,0
+
 #creates a 2D RRT for testing the algorithm: will be deleted from final code
 #returns an array of nodes, a 2D array of indices the node at the row's index is connected to, and a distances array corresponding to these connections
 #start: (x, y) for start state. goal: (x, y) for goal state. N: number of nodes to have in the RRT. dq: distance between each node in the RRT.
