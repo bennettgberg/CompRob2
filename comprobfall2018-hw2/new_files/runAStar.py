@@ -49,7 +49,7 @@ def runAStar(Start, goal, nodes, adjacency, distances):
                     n = anode.Node(config, s, heur(config, goal))
                     fringe.insert(n)
               #update n so its parent is s.
-                if fringe.update(s, config, distances[s_ind][ni]):  #What is correct first index for distances?????????????????!!!!!!!!!!
+                if fringe.update(s, *config, distances[s_ind][ni]):  #What is correct first index for distances?????????????????!!!!!!!!!!
                     updated = True
         if updated:
             fringe.updateFringeHeap()
