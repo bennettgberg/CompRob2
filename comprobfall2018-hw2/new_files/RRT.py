@@ -32,25 +32,44 @@ def getNewPt(ogpt, randpt, dq):
     dy = dq * math.sin(alpha)
     return (ogpt[0]+dx, ogpt[1]+dy)
 
+def sampleRRTPt(xmax,ymax,shift,polys):
+    #gets a valid X and Y in the boundary of the actual world, eliminates points that are obviously inside obstacles
+    while(True):
+        pointCheck=True
+        (x,y)=planning.sample2D(xmax,ymax)
+        (x,y)=(x+shift[0],y+shift[1])
+        tmpPt=geo.Point((x,y))
+        for polyIndex in range(0,len(polys)):
+            if polys[polyIndex].contains(tmpPt):
+                pointCheck=False
+        if pointCheck is True:
+            return((x,y))
+
 #takes in a start and goal node, number of expansions, maximum space between 
 #state nodes take the form (x,y,theta)    
 #start is an x, y, theta
-#goal is a goal x,y polygon with clockwise vertices
-def RRTROS(start, goal, N, dq):
+#goal is a goal (x,y) polygon with clockwise vertices
+def randomRRTROS(start, goal, N, dq):
     #gazebo limits
     MAXV=17.8816 #m/s: maximum tangential velocity
-    MAXSTEER=244.8696 #rad/s: maximum steering acceleration
+    MAXSTEER=244.8696 #rad/s: maximum steering angle velocity
     MAXANGLE=0.785398163 #rad: maximum steering angle
     maxTimeStep=dq/MAXV
     #car x, y, theta
     carConfigs=[]
     #stores the tangential velocity, angular velocity, and time used to get here from the parent
-    carSpeeds=[]
-    addSpeed=carSpeeds.append
+    #Size N, but first row is null
+    carControls=[]
+    addControls=carControls.append
     addConfig=carConfigs.append
-    carAdjacency=[]
+    #parents of each node: will be size N (but first row is null)
+    carParents=[]
+    addParent=carParents.append
+    #children of each node: will be size N-=1
+    carChildren=[]
+    #distance between each pair of nodes
     carDistances=[]
-    goalPoly=geo.Polygon(goal)
+    goalRegionPoly=geo.Polygon(goal)
     #creates the actual obstacles form the website
     polys=[]
     vertices=[(1.2,6.5),(1.5,6.5),(1.5,-1.5),(1.2,-1.5)]
@@ -61,58 +80,59 @@ def RRTROS(start, goal, N, dq):
     polys.append(geo.Polygon(vertices))
     #adds initial conditions
     addConfig((start[0],start[1],start[2]))
-    addSpeed((0,0,0))
+    addControl(None)    
     i = 0 
     while i < N:          
         x=-1
         y=-1
         carDistances.append([])
-        carAdjacency.append([])
-        #gets a valid X and Y in the boundary of the actual world, eliminates points that are obviously inside obstacles
-        while(True):
-            pointCheck=True
-            (x,y)=planning.sample2D(19,14)
-            (x,y)=(x-9,y-7.5)
-            tmpPt=geo.Point((x,y))
-            for polyIndex in range(0,len(polys)):
-                if polys[polyIndex].contains(tmpPt):
-                    pointCheck=False
-            if pointCheck is True:
-                break
-            pointCheck=True  
-        #need to use the quiver function to actually show orientation    
-        plt.plot(x,y,'r.')
+        carChilren.append([])
+        (x,y)=sampleRRTPt(19,14,(-9,-7.5),polys)
         #addConfig((x,y))
         j=0
         #Get closest existing node 
-        newpt = None
+        newx=None
+        newY=None
         minD = float('inf')
         closej = 0
-        """for j in range(i+1):
-            (newx, newy) = planning.getNewPt((carConfigs[j][0],carConfigs[j][1]), (x,y), dq)
-            lineArgs=[(carConfigs[j][0],carConfigs[j][1]), (newx, newy)]
-            tempLine=geo.LineString(lineArgs) 
-            #if the line in question doesn't intesect the obstacle
-            polyCheck=True
-            for polyIndex in range(0,len(polys)):
-                if polys[polyIndex].contains(tempLine) or tempLine.crosses(polys[polyIndex]):
-                    polyCheck=False
-                    break
-            if polyCheck: 
-                dist = twoDdistances(twoDnodes[j],(x,y))        
-                if dist < minD:
-                    minD=dist
-                    closej = j
-                    newpt = (newx, newy)
-        if newpt == None:
-            continue
-        twoDnodes.append(newpt)
-        twoDadjacency[i].append(closej)
-        twoDadjacency[closej].append(i)
-        i += 1"""
+        #finds nearest existing that doesn't obviously intersect with an obstacle
+        #if there are none, resamples the point and tries again
+        while True:
+            for j in range(i+1):
+                dist = twoDdistances(twoDnodes[j],(x,y))   
+                #sees if it's close enough to even be worth checking
+                if dist >= minD:
+                    continue
+                lineArgs=[(carConfigs[j][0],carConfigs[j][1]), (x,y)]
+                tempLine=geo.LineString(lineArgs) 
+                #if the line in question doesn't intesect the obstacle, it's good to go
+                polyCheck=True
+                for polyIndex in range(0,len(polys)):
+                    if polys[polyIndex].contains(tempLine) or tempLine.crosses(polys[polyIndex]):
+                        polyCheck=False
+                        break  
+                #assigns a new minimum distance, saves the index of the closest point    
+                if polyCheck: 
+                        minD=dist
+                        closej=j 
+                        (newx,newy) = (x, y) 
+            if newpt == None:
+                (newx,newy)=sampleRRTPt(19,14,(-9,-7.5),polys)
+            else:
+                break
+        #adds a parent link from the closest node to the new node
+        addParent(closej)
+        #adds this node as a child for row closej
+        carChildren[closej].append()            
+        #interfaces a few test controls with gazebo, returns the best one    
+        (newConfig,newControls)=RRTSampleControls(carConfigs[j],(newx,newy))
+        addConfig(newConfig)
+        addControls(newControls)
+        i += 1
     return 0    
     
-    
+def heuristicRRTROS():
+return 0    
 
 #creates a 2D RRT for testing the algorithm: will be deleted from final code
 #returns an array of nodes, a 2D array of indices the node at the row's index is connected to, and a distances array corresponding to these connections
