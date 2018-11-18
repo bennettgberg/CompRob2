@@ -43,8 +43,8 @@ def runAStar(Start, goal, nodes, adjacency, distances):
         if s_ind == -1: sys.exit("Error: s_ind not found! s={}".format(str(s)))
         for ni in range(len(adjacency[s_ind])): #get k nearest neighbors of s: FIX THIS!!!!!(Which index for adjacency???)!
             config = nodes[adjacency[s_ind][ni]] #neighbor's configuration
-            if not planning.validPath(s.config, config, 10):
-                continue
+            #if not planning.validPath(s.config, config, 10):
+            #    continue
             if not Closed.check(*config):
                 if not fringe.check(*config): #theta):
                     n = anode.Node(config, s, heur(config, goal))
