@@ -69,7 +69,8 @@ def main():
     pianoAdjacency=None
     pianoDistances=None
     prmstar=False
-    buildTimes=[]
+    buildingCollisionChecks=[]
+    runningCollisionChecks=[]
     while nnodes<=maxNodes:
         if not prmstar:
             filenameString="PRM_N="+str(nnodes)+"_data.txt"
@@ -77,13 +78,12 @@ def main():
         else:
             filenameString="PRMstar_N="+str(nnodes)+"_data.txt"
             prm_file = open(filenameString, "w")
-        prm_times = []
         prm_quals = []
         print "Starting to build PRM"
-        init_time = time.time()
-        pianoNodes, pianoAdjacency, pianoDistances = PRM.PRMPiano(nnodes,pianoNodes, pianoAdjacency, pianoDistances,prmstar)
-        buildTimes.append(time.time() - init_time) #time to build the PRM (without start and goal nodes)
+        pianoNodes, pianoAdjacency, pianoDistances,collisions = PRM.PRMPiano(nnodes,pianoNodes, pianoAdjacency, pianoDistances,prmstar)
+        buildingCollisionChecks.append(collisions)
         i = 0
+        runningCollisionChecks.append(0)
         #run 50 trials
         while i < 50:
             print "STARTING ITERATION "+ str(i) 
@@ -92,23 +92,21 @@ def main():
             #piano start and goal must be on the ground, have no rotation
             start = (startx, starty, 0.3, 1, 0, 0, 0)
             goal = (goalx, goaly, 0.3, 1, 0, 0, 0)
-            start_time = time.time()
-            newPianoNodes, newPianoAdjacency, newPianoDistances, startIndex, goalIndex = PRM.addStartandGoalPiano(pianoNodes, pianoAdjacency, pianoDistances, start, goal,prmstar)
+            newPianoNodes, newPianoAdjacency, newPianoDistances, startIndex, goalIndex,collisions = PRM.addStartandGoalPiano(pianoNodes, pianoAdjacency, pianoDistances, start, goal,prmstar)
+            runningCollisionChecks[len(runningCollisionChecks)-1]=runningCollisionChecks[len(runningCollisionChecks)-1]+collisions
             Start = anode.Node(newPianoNodes[startIndex], None, 0)
             Goal = (newPianoNodes[goalIndex])
             apath, final_dist = runAStar(Start, Goal, newPianoNodes, newPianoAdjacency, newPianoDistances)
-            final_time = time.time() - start_time  #time to add start+goal, run A* to find path
             #if path wasn't found, repeat this trial
             if not apath:
                 continue
-            prm_times.append(final_time)
             prm_quals.append(final_dist)
-            prm_file.write(str(final_time) + '\t' + str(final_dist) + '\n ')
+            prm_file.write(str(runningCollisionChecks[len(runningCollisionChecks)-1]) + '\t' + str(final_dist) + '\n ')
             i += 1
         nnodes=nnodes+nodeIncrement    
         prm_file.close()
         #plot the final data: time vs. path quality
        # plt.plot(prm_times, prm_quals, '.b')
         #plt.show()
-    print("Final Build Times for each interation:"+str(buildTimes)) 
+    print("Final Build Times for each interation:"+str(buildingCollisionChecks)) 
 main()
