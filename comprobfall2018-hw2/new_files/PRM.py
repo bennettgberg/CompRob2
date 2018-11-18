@@ -113,7 +113,7 @@ def PRMPiano(N,pianoNodes,pianoAdjacency,pianoDistances,prmstar, k=3):
                             kDists.pop()
                             kIndices.pop()
                             #updates the new farthest distance
-                            farD=kDists[k-1]                            
+                            farD=kDists[len(kDists)-1]                            
                             break
 
         #adds the edges we found to the lists            
