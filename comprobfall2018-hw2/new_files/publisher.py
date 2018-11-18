@@ -8,6 +8,7 @@ from ackermann_msgs.msg import AckermannDrive
 from gazebo_msgs.srv import SetModelState, GetModelState
 from gazebo_msgs.msg import ModelState, ModelStates
 import geometry_msgs.msg
+import time
 
 sys.path.append('../ackermann/ackermann_vehicle_gazebo/nodes/')
 import ackermann_controller
@@ -16,9 +17,9 @@ def ackermann_publisher(speed, steering_angle, steering_angle_velocity, accelera
 	pub = rospy.Publisher("ackermann_cmd", AckermannDrive, queue_size=1)
 	# rospy.init_node('ackermann_controller', anonymous=True)
 
-	rate = rospy.Rate(float(1/time_step)) # 1/time_step Hz
+	rate = rospy.Rate(10.0) #float(1/time_step)) # 1/time_step Hz
 	print("hello")
-	rospy.sleep(1.0) #0.5)
+	rospy.sleep(0.5)
 
 	while not rospy.is_shutdown():
 		
@@ -33,8 +34,8 @@ def ackermann_publisher(speed, steering_angle, steering_angle_velocity, accelera
 		#while rospy.Time.now()<rospy.time.from_sec(startTime)+time_step:
 		#	pub.publish(state)
 		#for i in range(0,time_step):
-		init_time = Time.time()
-		while time.time < init_time + time_step:
+		init_time = time.time()
+		while time.time() < init_time + time_step:
 			pub.publish(state)
 		#rospy.sleep(1) #time_step) -bg3
 #		rate.sleep()
