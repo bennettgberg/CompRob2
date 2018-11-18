@@ -20,21 +20,29 @@ import planning
 #N: how many nodes in the roadmap. k: how many neighbors to check 
 #returns an array of nodes, a 2D array of indices the node at the row's index is connected to, and a distances array corresponding to these connections
 #this is actually traversed using the Astar algorithm
-def PRMPiano(N, k=3):
-    #a list of nodes
-    pianoNodes=[]
-    #making this a function instead of calling cuts the runtime in half
+#to start a new PRM, pass "none" to all of these. To extend an existing map, pass it in PianoNodes, PianoAdjacency, PianoDistances
+def PRMPiano(N,PianoNodes,PianoAdjacency,PianoDistances,prmstar, k=3):
+    if PianoNodes is None:
+        #a list of nodes
+        pianoNodes=[]
+        #if you assign it to a variable, it cuts the runtime in half
+        #the adjacency list: indicates which nodes in the first list are connected to the others
+        pianoAdjacency=[]
+        pianoDistances=[]
+        indexStart=0
+    else:
+        indexStart=len(PianoNodes)
+    #making this a function instead of calling cuts the runtime of this action in half for whatever reason
     addNode = pianoNodes.append
-    #if you assign it to a variable, it cuts the runtime in half
-    #the adjacency list: indicates which nodes in the first list are connected to the others
-    pianoAdjacency=[]
-    pianoDistances=[]
-    for i in range(0,N):
+    for i in range(indexStart,N):
 	print "adding node " + str(i)
         #a temporary variable for the piano position: x,y,z, quaternions
         pianoPos=(0,0,0,0,0,0,0)
         pianoAdjacency.append([])
         pianoDistances.append([])
+        #if PRM star, sets k to the log of the number of nodes in the list
+        if prmstar:
+            k = np.ceil(np.log2(i))
         #gets a valid position for the piano
         #NOTE: I do not know what the coordinate system is: negative numbers might be fair game
         #in which case "x<0" is not a valid criterion
@@ -106,7 +114,6 @@ def PRMPiano(N, k=3):
             pianoAdjacency[ind2].append(i)
             pianoDistances[ind2].append(kDists[j])
     return pianoNodes, pianoAdjacency, pianoDistances    
-
 
 #input: list of nodes, adjacency matrix, and distance matrix
 #returns: augmented nodes, adjacency matrix, and distance matrix, index of start and goal states
@@ -197,7 +204,7 @@ def PRM2D(N):
         twoDdistances.append([])
         #gets a valid X and Y
         while(x<0 or poly1.contains(geo.Point(x,y))):
-            (x,y)=sample2D(5,5)
+            (x,y)=planning.sample2D(5,5)
         plt.plot(x,y,'r.')
         addNode((x,y))
         k=3
@@ -264,6 +271,7 @@ def PRM2D(N):
             twoDadjacency[ind2].append(i)
             twoDdistances[ind2].append(kDists[j])
     return twoDnodes, twoDadjacency, twoDdistances
+
 
 
 #input: list of nodes, adjacency matrix, and distance matrix
