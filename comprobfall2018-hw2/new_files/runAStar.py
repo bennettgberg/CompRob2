@@ -42,8 +42,8 @@ def runAStar(Start, goal, nodes, adjacency, distances):
         if s_ind == -1: sys.exit("Error: s_ind not found! s={}".format(str(s)))
         for ni in range(len(adjacency[s_ind])): #get k nearest neighbors of s: FIX THIS!!!!!(Which index for adjacency???)!
             config = nodes[adjacency[s_ind][ni]] #neighbor's configuration
-            if not planning.validPath(s.config, config, 10):
-                continue
+    #        if not planning.validPath(s.config, config, 10):
+    #            continue #path has already been confirmed valid, no need to check again!
             if not Closed.check(*config):
                 if not fringe.check(*config): #theta):
                     n = anode.Node(config, s, heur(config, goal))
@@ -59,35 +59,30 @@ def runAStar(Start, goal, nodes, adjacency, distances):
 def main():
     #locate start vertex of piano bot and goal vertex.
     """Read the input arguments"""
-    rrt = False
+    prmstar = False
+    k = 3
     nnodes = 50
     for i in range(1, len(sys.argv)):
         if sys.argv[i] == "-n" or sys.argv[i] == "-num" or sys.argv[i] == "-number":
             num = int(sys.argv[i+1])
             i=i+1
-        elif sys.argv[i] == "-RRT" or sys.argv[i] == "-rrt":
-            rrt = True
+        elif sys.argv[i] == "-s" or sys.argv[i] == "-star":
+            prmstar = True
         elif sys.argv[i] == "-nnodes":
             nnodes = int(sys.argv[i+1])
+	elif sys.argv[i] == "-k":
+	    k = int(sys.argv[i+1])
     #runAStar will return goal node if there's a path to goal from start
 
     plt.xlim(-10, 10)
     plt.ylim(-10, 10)
     plt.xticks(np.arange(-10, 10, 1))
     plt.yticks(np.arange(-10, 10, 1))
-    if not rrt:
-        twoDnodes, twoDadjacency, twoDdistances = PRM.PRMPiano(nnodes)
-        twoDnodes, twoDadjacency, twoDdistances, startIndex, goalIndex = PRM.addStartandGoalPiano(twoDnodes, twoDadjacency, twoDdistances, (5.0, 9.0, 0.3, 1, 0, 0, 0), (4.0, 4.0, 0.3, 1, 0, 0, 0))
-        Start = anode.Node(twoDnodes[startIndex], None, 0)
-        Goal = (twoDnodes[goalIndex])
-    else:
-        #FIX RRT
-        twoDnodes, twoDadjacency = RRT.RRT2D(Start, (5,5), nnodes, 0.2)
-        twoDdistances = [[0.2 for x in range(nnodes)] for y in range(nnodes)]
+    twoDnodes, twoDadjacency, twoDdistances = PRM.PRMPiano(nnodes, None, None, None, prmstar, k)
+    twoDnodes, twoDadjacency, twoDdistances, startIndex, goalIndex = PRM.addStartandGoalPiano(twoDnodes, twoDadjacency, twoDdistances, (5.0, 9.0, 0.3, 1, 0, 0, 0), (4.0, 4.0, 0.3, 1, 0, 0, 0))
+    Start = anode.Node(twoDnodes[startIndex], None, 0)
+    Goal = (twoDnodes[goalIndex])
     apath = runAStar(Start, Goal, twoDnodes, twoDadjacency, twoDdistances)
-    if rrt:
-        RRT.RRT2Dshow(twoDnodes, twoDadjacency)
-     #   plt.show()
     #NOW MOVE ALONG THE PATH THAT WAS FOUND!
     poses = []
     if not apath == None:
