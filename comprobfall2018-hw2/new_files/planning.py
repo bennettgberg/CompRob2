@@ -19,8 +19,11 @@ from subprocess import call
 sys.path.append('../')
 from pqp_server.srv import *
 
-# def timeout():
-#     return collides()
+class TimeoutException(Exception):
+    pass
+
+def timeout_handler(signum, frame):
+    raise TimeoutException
 
 def key(config):
     return str(config[0])+'_'+str(config[1]) + '_' + str(config[2]) + '_' + str(config[3]) + '_' + str(config[4]) + '_' + str(config[5]) + '_' + str(config[6])
@@ -56,7 +59,6 @@ def quatDist(Q1,Q2):
 #takes a configuration, outputs a boolean True if it collides, False if it is valid 
 #interfaces with gazebo
 def collides(T, R):
-
     R_flat = [1., 0., 0., 0., 1., 0., 0., 0., 1.]
 
     for i in range(len(R)):
@@ -66,16 +68,17 @@ def collides(T, R):
     if len(T) != 3 or len(R_flat) != 9:
         sys.exit("Incorrect list size for pqp request")
 
+    signal.signal(signal.SIGALRM, timeout_handler)
     # print("test1")
     try:
         rospy.wait_for_service('pqp_server', timeout=1)
     except rospy.ROSException:
-        print "Service Call Failed, returning collides and start pqp_server"
-
+        print "Starting pqp_ros_server"
         os.system("cd /home/steven/catkin_ws/src/comprobfall2018-hw2/pqp_server; rosrun pqp_server pqp_ros_server &")
-        rospy.wait_for_service('pqp_server')
+        rospy.wait_for_service('pqp_server', timeout=1)
         # call(["rosrun", "pqp_server", "pqp_ros_server"], cwd="/home/steven/catkin_ws/src/comprobfall2018-hw2/pqp_server")
-        return collides(T, R)
+    #    return collides(T, R)
+    signal.alarm(2)
     try:
         rospy.wait_for_service('pqp_server', timeout=1)
         # print("test2")
@@ -85,13 +88,14 @@ def collides(T, R):
         if(str(result)=="result: False"): result = False
         else: result = True
         #print("pqp_server returned {} for {}, {}".format(result, T, R_flat))
+    except TimeoutException:
+        print "Service Call Failed, restarting pqp_ros_server"
+        os.system("cd /home/steven/catkin_ws/src/comprobfall2018-hw2/pqp_server; rosrun pqp_server pqp_ros_server &")
+        return collides(T, R)
+    else:
+        signal.alarm(0)
         return result
-    except rospy.ROSException:
-        return collides(T, R)
-    except rospy.ServiceException, e:
-        print "Service Call Failed, should be unreachable: %s"%e
-        return collides(T, R)
-    print("This should be even more unreachable")
+    print("This should never be printed at all.")
     return True
 
 
