@@ -93,7 +93,7 @@ def main():
             start = (startx, starty, 0.3, 1, 0, 0, 0)
             goal = (goalx, goaly, 0.3, 1, 0, 0, 0)
             start_time = time.time()
-            newPianoNodes, newPianoAdjacency, newPianoDistances, startIndex, goalIndex = PRM.addStartandGoalPiano(pianoNodes, pianoAdjacency, pianoDistances, start, goal,False)
+            newPianoNodes, newPianoAdjacency, newPianoDistances, startIndex, goalIndex = PRM.addStartandGoalPiano(pianoNodes, pianoAdjacency, pianoDistances, start, goal,prmstar)
             Start = anode.Node(newPianoNodes[startIndex], None, 0)
             Goal = (newPianoNodes[goalIndex])
             apath, final_dist = runAStar(Start, Goal, newPianoNodes, newPianoAdjacency, newPianoDistances)
@@ -103,12 +103,12 @@ def main():
                 continue
             prm_times.append(final_time)
             prm_quals.append(final_dist)
-            prm_file.write(str(final_time) + '\t' + str(final_dist) + '\n')
+            prm_file.write(str(final_time) + '\t' + str(final_dist) + '\n ')
             i += 1
         nnodes=nnodes+nodeIncrement    
         prm_file.close()
         #plot the final data: time vs. path quality
-        plt.plot(prm_times, prm_quals, '-b')
-        plt.show()
+       # plt.plot(prm_times, prm_quals, '.b')
+        #plt.show()
     print("Final Build Times for each interation:"+str(buildTimes)) 
 main()
