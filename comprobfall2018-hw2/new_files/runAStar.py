@@ -104,7 +104,7 @@ def main():
 
             import publisher
             # add points to list to send to turtlebot_control_client
-            q = geometry_msgs.msg.Quaternion(*(current.config[4:7]+(current.config[3],)))
+            q = geometry_msgs.msg.Quaternion(*(current.config[4:7]+[current.config[3]]))
             p = geometry_msgs.msg.Point(*current.config[0:3])
             pose = geometry_msgs.msg.Pose(p, q)
             poses.append(pose)

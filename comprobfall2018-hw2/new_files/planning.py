@@ -19,8 +19,8 @@ from subprocess import call
 sys.path.append('../')
 from pqp_server.srv import *
 
-def timeout():
-    return collides()
+# def timeout():
+#     return collides()
 
 def key(config):
     return str(config[0])+'_'+str(config[1]) + '_' + str(config[2]) + '_' + str(config[3]) + '_' + str(config[4]) + '_' + str(config[5]) + '_' + str(config[6])
@@ -66,7 +66,7 @@ def collides(T, R):
     if len(T) != 3 or len(R_flat) != 9:
         sys.exit("Incorrect list size for pqp request")
 
-    print("test1")
+    # print("test1")
     try:
         rospy.wait_for_service('pqp_server', timeout=1)
     except rospy.ROSException:
@@ -78,7 +78,7 @@ def collides(T, R):
         return collides(T, R)
     try:
         rospy.wait_for_service('pqp_server', timeout=1)
-        print("test2")
+        # print("test2")
         pqp_server = rospy.ServiceProxy('pqp_server', pqpRequest)
         result = pqp_server(T, R_flat)
         #print result
