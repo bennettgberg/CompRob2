@@ -61,54 +61,54 @@ def main():
     #locate start vertex of piano bot and goal vertex.
     """Read the input arguments"""
     prmstar = False
-    nnodes = 100
-    for i in range(1, len(sys.argv)):
-        if sys.argv[i] == "-n" or sys.argv[i] == "-N" or sys.argv[i] == "-nnodes":
-            nnodes = int(sys.argv[i+1])
-            i=i+1
-        elif sys.argv[i] == "-star" or sys.argv[i] == "-s":
-            prmstar = True
-    #runAStar will return goal node if there's a path to goal from start
-    if not prmstar:
-        filenameString="PRM_N="+str(nnodes)+"_data.txt"
-        prm_file = open("PRM_data.txt", "w")
-    else:
-        filenameString="PRMstar_N="+str(nnodes)+"_data.txt"
-        prm_file = open("PRMstar_data.txt", "w")
-
-    k = 1
-    if prmstar: 
-        k = int(math.log(nnodes))
-    prm_times = []
-    prm_quals = []
-    print "Starting to build PRM"
-    init_time = time.time()
-    twoDnodes, twoDadjacency, twoDdistances = PRM.PRMPiano(nnodes, k)
-    build_time = time.time() - init_time #time to build the PRM (without start and goal nodes)
-    i = 0
-    #run 50 trials
-    while i < 50:
-	print "STARTING ITERATION "+ str(i) 
-        (startx, starty) = planning.sample2D(10, 10)
-        (goalx, goaly) = planning.sample2D(10, 10)
-        #piano start and goal must be on the ground, have no rotation
-        start = (startx, starty, 0.3, 1, 0, 0, 0)
-        goal = (goalx, goaly, 0.3, 1, 0, 0, 0)
-        start_time = time.time()
-        newtwoDnodes, newtwoDadjacency, newtwoDdistances, startIndex, goalIndex = PRM.addStartandGoalPiano(twoDnodes, twoDadjacency, twoDdistances, (5.0, 9.0, 0.3, 1, 0, 0, 0), (4.0, 4.0, 0.3, 1, 0, 0, 0), k)
-        Start = anode.Node(newtwoDnodes[startIndex], None, 0)
-        Goal = (newtwoDnodes[goalIndex])
-        apath, final_dist = runAStar(Start, Goal, newtwoDnodes, newtwoDadjacency, newtwoDdistances)
-        final_time = time.time() - start_time  #time to add start+goal, run A* to find path
-        #if path wasn't found, repeat this trial
-        if not apath:
-            continue
-        prm_times.append(final_time)
-        prm_quals.append(final_dist)
-        prm_file.write(str(final_time) + "\t" + str(final_dist) + "\n")
-        i += 1
-    prm_file.close()
-    #plot the final data: time vs. path quality
-    plt.plot(prm_times, prm_quals, '-b')
-    plt.show()
+    minNodes=25
+    maxNodes=100
+    nodeIncrement=25
+    nnodes = minNodes
+    pianoNodes=None
+    pianoAdjacency=None
+    pianoDistances=None
+    prmstar=False
+    buildTimes=[]
+    while nnodes<=maxNodes:
+        if not prmstar:
+            filenameString="PRM_N="+str(nnodes)+"_data.txt"
+            prm_file = open(filenameString, "w")
+        else:
+            filenameString="PRMstar_N="+str(nnodes)+"_data.txt"
+            prm_file = open(filenameString, "w")
+        prm_times = []
+        prm_quals = []
+        print "Starting to build PRM"
+        init_time = time.time()
+        pianoNodes, pianoAdjacency, pianoDistances = PRM.PRMPiano(nnodes,pianoNodes, pianoAdjacency, pianoDistances,prmstar)
+        buildTimes.append(time.time() - init_time) #time to build the PRM (without start and goal nodes)
+        i = 0
+        #run 50 trials
+        while i < 50:
+            print "STARTING ITERATION "+ str(i) 
+            (startx, starty) = planning.sample2D(10, 10)
+            (goalx, goaly) = planning.sample2D(10, 10)
+            #piano start and goal must be on the ground, have no rotation
+            start = (startx, starty, 0.3, 1, 0, 0, 0)
+            goal = (goalx, goaly, 0.3, 1, 0, 0, 0)
+            start_time = time.time()
+            newPianoNodes, newPianoAdjacency, newPianoDistances, startIndex, goalIndex = PRM.addStartandGoalPiano(pianoNodes, pianoAdjacency, pianoDistances, start, goal)
+            Start = anode.Node(newPianoNodes[startIndex], None, 0)
+            Goal = (newPianoNodes[goalIndex])
+            apath, final_dist = runAStar(Start, Goal, newPianoNodes, newPianoAdjacency, newPianoDistances)
+            final_time = time.time() - start_time  #time to add start+goal, run A* to find path
+            #if path wasn't found, repeat this trial
+            if not apath:
+                continue
+            prm_times.append(final_time)
+            prm_quals.append(final_dist)
+            prm_file.write(str(final_time) + '\t' + str(final_dist) + '\n')
+            i += 1
+        nnodes=nnodes+nodeIncrement    
+        prm_file.close()
+        #plot the final data: time vs. path quality
+        plt.plot(prm_times, prm_quals, '-b')
+        plt.show()
+    print("Final Build Times for each interation:"+str(buildTimes)) 
 main()
