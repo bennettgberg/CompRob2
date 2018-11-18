@@ -26,17 +26,25 @@ def ackermann_publisher(speed, steering_angle, steering_angle_velocity, accelera
 		state.steering_angle = steering_angle
 		state.steering_angle_velocity=steering_angle_velocity
 		state.speed = speed
-		state.acceleration = acceleration
-		state.jerk = jerk
+		state.acceleration = 0 #acceleration -bg1
+		state.jerk = 0 #jerk -bg2
 
+		#startTime=rospy.Time.from_sec(rospy.get_time())
+		#while rospy.Time.now()<rospy.time.from_sec(startTime)+time_step:
+		#	pub.publish(state)
+		#for i in range(0,time_step):
+		init_time = Time.time()
+		while time.time < init_time + time_step:
+			pub.publish(state)
+		#rospy.sleep(1) #time_step) -bg3
 #		rate.sleep()
 #
-#		state.steering_angle = 0
-#		state.steering_angle_velocity=0
-#		state.speed = 0
-#		state.acceleration = 0
-#		state.jerk = 0
-#
+		state.steering_angle = 0
+		state.steering_angle_velocity=0
+		state.speed = 0
+		state.acceleration = 0
+		state.jerk = 0
+		
 		rospy.loginfo(state)
 		print("publishing state")
 		pub.publish(state)
