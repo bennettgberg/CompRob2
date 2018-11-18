@@ -126,6 +126,6 @@ def main():
     # twist = geometry_msgs.msg.Twist(geometry_msgs.msg.Vector3(0,0,0), geometry_msgs.msg.Vector3(0,0,0))
     for pose in poses:
         print "Sending (%s, %s, %s)"%(pose.position.x, pose.position.y, pose.position.z)
-        publisher.model_state_publisher(pose)
+        publisher.model_state_publisher(pose, "piano2")
         print "Sent piano to (%s, %s, %s)."%(pose.position.x, pose.position.y, pose.position.z)
 main()

@@ -165,6 +165,12 @@ def RRTROS(start, goal, N, greedy):
 #startConfig is a tuple (x,y,theta) for the car
 #goalLoc is (x,y)
 def RRTSampleControls(startConfig,goalLoc):
+
+    q = tf.transformations.quaternion_from_euler(startConfig[3],0,0, axes='xyzr')
+    p = geometry_msgs.msg.Point(*startConfig[0:3])
+    pose = geometry_msgs.msg.Pose(p, q)
+    publisher.model_state_publisher(pose, "ackermann_vehicle")
+
     acc=12
     jerk=8
     minDist=float('inf')
