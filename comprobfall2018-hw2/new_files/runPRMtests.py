@@ -69,7 +69,7 @@ def main():
         elif sys.argv[i] == "-star" or sys.argv[i] == "-s":
             prmstar = True
     #runAStar will return goal node if there's a path to goal from start
-    if not star:
+    if not prmstar:
         prm_file = open("PRM_data.txt", "w")
     else:
         prm_file = open("PRMstar_data.txt", "w")
@@ -79,12 +79,14 @@ def main():
         k = int(math.log(nnodes))
     prm_times = []
     prm_quals = []
+    print "Starting to build PRM"
     init_time = time.time()
     twoDnodes, twoDadjacency, twoDdistances = PRM.PRMPiano(nnodes, k)
     build_time = time.time() - init_time #time to build the PRM (without start and goal nodes)
     i = 0
     #run 50 trials
     while i < 50:
+	print "STARTING ITERATION "+ str(i) 
         (startx, starty) = planning.sample2D()
         (goalx, goaly) = planning.sample2D()
         #piano start and goal must be on the ground, have no rotation

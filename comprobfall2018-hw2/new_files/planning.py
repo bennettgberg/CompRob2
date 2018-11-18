@@ -63,10 +63,10 @@ def collides(T, R):
     try:
         pqp_server = rospy.ServiceProxy('pqp_server', pqpRequest)
         result = pqp_server(T, R_flat)
-        print result
+        #print result
         if(str(result)=="result: False"): result = False
         else: result = True
-        print("pqp_server returned {} for {}, {}".format(result, T, R_flat))
+        #print("pqp_server returned {} for {}, {}".format(result, T, R_flat))
         return result
     except rospy.ServiceException, e:
         print "Service Call Failed: %s"%e

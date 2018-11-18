@@ -30,6 +30,7 @@ def PRMPiano(N, k=3):
     pianoAdjacency=[]
     pianoDistances=[]
     for i in range(0,N):
+	print "adding node " + str(i)
         #a temporary variable for the piano position: x,y,z, quaternions
         pianoPos=(0,0,0,0,0,0,0)
         pianoAdjacency.append([])
@@ -41,9 +42,9 @@ def PRMPiano(N, k=3):
             pianoPos=planning.sample6D(10,10,5)
             collides = planning.collides(pianoPos[0:3], planning.quatToMatrix(pianoPos[3],pianoPos[4],pianoPos[5],pianoPos[6]))
             if not collides:
-                print("no collision for {}".format(pianoPos))
+          #      print("no collision for {}".format(pianoPos))
                 break
-            print("collision for {}".format(pianoPos))
+          #  print("collision for {}".format(pianoPos))
         addNode(pianoPos)
         #case: fewer than k nodes, don't check k or it will crash
         if(k>i):
@@ -116,7 +117,7 @@ def addStartandGoalPiano(pianoNodes, pianoAdjacency, pianoDistances, startConfig
     newPianoNodes=map(list, pianoNodes)
     newPianoDistances=map(list, pianoDistances)
     for startOrGoal in range(0,2):
-        print("len(newPianoNodes)={}".format(len(newPianoNodes)))
+       # print("len(newPianoNodes)={}".format(len(newPianoNodes)))
         if startOrGoal is 0:
             newPianoNodes.append(startConfig)
             currIndex=len(newPianoNodes)-1
@@ -136,9 +137,9 @@ def addStartandGoalPiano(pianoNodes, pianoAdjacency, pianoDistances, startConfig
         #adds k ordered elements to the list, ordered shortest to furthest
         while len(kDists)<k and j<currIndex:
             #if the line in question doesn't intesect the obstacle
-            print("len(newPianoNodes)={}".format(len(newPianoNodes)))
-            print("len(pianoNodes)={}".format(len(pianoNodes)))
-            print("j={}, currIndex={}".format(j,currIndex))
+           # print("len(newPianoNodes)={}".format(len(newPianoNodes)))
+           # print("len(pianoNodes)={}".format(len(pianoNodes)))
+           # print("j={}, currIndex={}".format(j,currIndex))
             if (planning.validPath(newPianoNodes[currIndex],newPianoNodes[j], 10)): 
                 dist=planning.distance(newPianoNodes[currIndex],newPianoNodes[j])
                 if dist>farD:
