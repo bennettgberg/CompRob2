@@ -93,7 +93,7 @@ def main():
             start = (startx, starty, 0.3, 1, 0, 0, 0)
             goal = (goalx, goaly, 0.3, 1, 0, 0, 0)
             start_time = time.time()
-            newPianoNodes, newPianoAdjacency, newPianoDistances, startIndex, goalIndex = PRM.addStartandGoalPiano(pianoNodes, pianoAdjacency, pianoDistances, start, goal)
+            newPianoNodes, newPianoAdjacency, newPianoDistances, startIndex, goalIndex = PRM.addStartandGoalPiano(pianoNodes, pianoAdjacency, pianoDistances, start, goal,False)
             Start = anode.Node(newPianoNodes[startIndex], None, 0)
             Goal = (newPianoNodes[goalIndex])
             apath, final_dist = runAStar(Start, Goal, newPianoNodes, newPianoAdjacency, newPianoDistances)
