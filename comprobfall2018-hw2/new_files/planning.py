@@ -75,10 +75,10 @@ def collides(T, R):
     except rospy.ROSException:
         print "Starting pqp_ros_server"
         os.system("cd /home/steven/catkin_ws/src/comprobfall2018-hw2/pqp_server; rosrun pqp_server pqp_ros_server &")
-        rospy.wait_for_service('pqp_server', timeout=1)
+        rospy.wait_for_service('pqp_server')
         # call(["rosrun", "pqp_server", "pqp_ros_server"], cwd="/home/steven/catkin_ws/src/comprobfall2018-hw2/pqp_server")
     #    return collides(T, R)
-    signal.alarm(2)
+    signal.alarm(1)
     try:
         rospy.wait_for_service('pqp_server', timeout=1)
         # print("test2")
@@ -91,6 +91,9 @@ def collides(T, R):
     except TimeoutException:
         print "Service Call Failed, restarting pqp_ros_server"
         os.system("cd /home/steven/catkin_ws/src/comprobfall2018-hw2/pqp_server; rosrun pqp_server pqp_ros_server &")
+        return collides(T, R)
+    except rospy.ServiceException, e:
+        print "Service Call Failed: %s"%e
         return collides(T, R)
     else:
         signal.alarm(0)

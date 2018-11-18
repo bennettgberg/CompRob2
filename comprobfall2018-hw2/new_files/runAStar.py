@@ -79,6 +79,7 @@ def main():
     twoDnodes, twoDadjacency, twoDdistances, ncc = PRM.PRMPiano(nnodes, None, None, None, prmstar, k)
     print "Roadmap created!"
     twoDnodes, twoDadjacency, twoDdistances, startIndex, goalIndex, ncc2 = PRM.addStartandGoalPiano(twoDnodes, twoDadjacency, twoDdistances, (5.0, 9.0, 0.4, 1.0, 0.0, 0.0, 0.0), (1.5, 1.5, 0.4, 1.0, 0.0, 0.0, 0.0), prmstar)
+    # twoDnodes, twoDadjacency, twoDdistances, startIndex, goalIndex, ncc2 = PRM.addStartandGoalPiano(twoDnodes, twoDadjacency, twoDdistances, (5.0, 9.0, 0.4, 1.0, 0.0, 0.0, 0.0), (4.0, 4.0, 0.4, 1.0, 0.0, 0.0, 0.0), prmstar)
     print "Start and goal added!"
     Start = anode.Node(twoDnodes[startIndex], None, 0)
     Goal = (twoDnodes[goalIndex])
@@ -104,7 +105,7 @@ def main():
 
             import publisher
             # add points to list to send to turtlebot_control_client
-            q = geometry_msgs.msg.Quaternion(*(current.config[4:7]+[current.config[3]]))
+            q = geometry_msgs.msg.Quaternion(current.config[4], current.config[5], current.config[6], current.config[3])
             p = geometry_msgs.msg.Point(*current.config[0:3])
             pose = geometry_msgs.msg.Pose(p, q)
             poses.append(pose)
