@@ -40,8 +40,9 @@ def ackermann_publisher(speed, steering_angle, steering_angle_velocity, accelera
 		rospy.loginfo(state)
 		print("publishing state")
 		pub.publish(state)
-		print("state published, sleeping for []".format(rate))
+		print("state published, sleeping for {}".format(rate.remaining()))
 		rate.sleep()
+		break
 	return
 
 def model_state_publisher(pose, twist=geometry_msgs.msg.Twist(geometry_msgs.msg.Vector3(0,0,0), geometry_msgs.msg.Vector3(0,0,0)), model_name="piano2"):

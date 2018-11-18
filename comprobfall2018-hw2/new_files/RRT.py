@@ -72,6 +72,7 @@ def RRTROS(start, goal, N, greedy):
     i = 0 
     goalFound=False
     goalIndex=None
+    #Outer loop: builds N nodes
     while i < N:          
         x=-1
         y=-1
@@ -85,28 +86,26 @@ def RRTROS(start, goal, N, greedy):
         closej = 0
         #finds nearest existing that doesn't obviously intersect with an obstacle
         #if there are none, resamples the point and tries again
+        newx=None
         while True:
-            for j in range(i+1):
-                if greedy:
-                    #we decided this was a shit algorithm but I'm leaving it here in case we want to try that later
-                    #defines a 90 degree arc towards the bottom left corner where the car is not allowed to go
-                    #relativeX=x-carConfigs[j][0]
-                    #relativeY=y-carConfigs[j][1]
-                    #if relativeY<0 and relativeX<0:
-                    #    continue
-            
-                    #samples two new points, compares to old sample and picks the one closest to the goal
-                    for q in range(0,1):
-                        (x1,y1)=sampleRRTPt(19,14,(-9,-7.5),polys)
-                        if planning.twoDdist((x1,y1),(10,8.5))<plannng.twoDdist((x,y),(10,6.5)):
-                            (x,y)=(x1,y1)
-                    print("greedy algorithm sampled x="+ str(x) +" y="+ str(y))
-                else:
-                    print("testing with point x=" + str(x) +" y="+ str(y))
+            if greedy:          
+                #samples two new points, compares to old sample and picks the one closest to the goal
+                for q in range(0,1):
+                    (x1,y1)=sampleRRTPt(19,14,(-9,-7.5),polys)
+                    if planning.twoDdist((x1,y1),(10,8.5))<plannng.twoDdist((x,y),(10,6.5)):
+                        (x,y)=(x1,y1)
+                print("greedy algorithm sampled x="+ str(x) +" y="+ str(y))
+            else:
+                #only checks this point
+                print("testing with point x=" + str(x) +" y="+ str(y))            
+            for j in range(0,i+1):
+                #gets distane  between current node and th sampled node
                 dist = planning.twoDdist((carConfigs[j][0],carConfigs[j][1]),(x,y))   
                 #sees if it's close enough to even be worth checking
                 if dist >= minD:
                     continue
+
+                #start nominal collision check    
                 lineArgs=[(carConfigs[j][0],carConfigs[j][1]), (x,y)]
                 tempLine=geo.LineString(lineArgs) 
                 #if the line in question doesn't intesect the obstacle, it's good to go
@@ -115,10 +114,12 @@ def RRTROS(start, goal, N, greedy):
                     if polys[polyIndex].contains(tempLine) or tempLine.crosses(polys[polyIndex]):
                         polyCheck=False
                         break  
+                #end collision check: if wecomment this out, be ure to leave polycheck true
+
                 #assigns a new minimum distance, saves the index of the closest point    
                 if polyCheck: 
                         #too close to existing nodes: we bias it to move away
-                        if dist<.5:
+                        if dist<.25:
                             newx=None
                             newy=None
                             minD=float('inf')
@@ -126,7 +127,8 @@ def RRTROS(start, goal, N, greedy):
                         #else: adds it to the tree
                         minD=dist
                         closej=j 
-                        (newx,newy) = (x, y) 
+                        (newx,newy) = (x, y)
+            #if no valid straight line paths were found, kills it             
             if newx == None:
                 (x,y)=sampleRRTPt(19,14,(-9,-7.5),polys)
             else:
@@ -153,12 +155,12 @@ def RRTROS(start, goal, N, greedy):
         i += 1
     return carConfigs, carControls, carChildren,carParents, goalIndex
  
-# def ackermann_model_state(msg):
+def ackermann_model_state(msg):
 
-#     model_state_x = msg.pose[2].position.x
-#     model_state_y = msg.pose[2].position.y
-#     model_state_quaternion = [msg.pose[2].orientation.x, msg.pose[2].orientation.y, msg.pose[2].orientation.z, msg.pose[2].orientation.w]
-#     # print(model_state_x, model_state_y, model_state_theta)
+    model_state_x = msg.pose[2].position.x
+    model_state_y = msg.pose[2].position.y
+    model_state_quaternion = [msg.pose[2].orientation.x, msg.pose[2].orientation.y, msg.pose[2].orientation.z, msg.pose[2].orientation.w]
+    # print(model_state_x, model_state_y, model_state_quaternion)
 
 #from the initial state, samples X controls and returns the set of controls that gets the closest, as well as the final location
 #odd is 1 or 0, prevents it from veering
@@ -176,6 +178,7 @@ def RRTSampleControls(startConfig,goalLoc):
     jerk=8
     minDist=float('inf')
 
+    #tries 5 controls
     for derp in range(0,5):
         #time to propagate this control
         # timeStep=rand.rand()*.32+.1
@@ -186,6 +189,7 @@ def RRTSampleControls(startConfig,goalLoc):
         #tangent velocity
         velocity=rand.rand()*.3+.2
 
+        #fix the timestep to 1 second
         timeStep=1
 
 
@@ -198,10 +202,11 @@ def RRTSampleControls(startConfig,goalLoc):
         model_state_quaternion = [msg.pose.orientation.x, msg.pose.orientation.y, msg.pose.orientation.z, msg.pose.orientation.w]
         (model_state_roll,model_state_pitch,model_state_theta) = euler_from_quaternion(model_state_quaternion)
 
-        # publisher.ackermann_publisher(velocity, steeringAngle, steeringAngleVelocity, acc, jerk, timeStep)
-        # sub = rospy.Subscriber("/gazebo/model_states", ModelStates, ackermann_model_state)
+        publisher.ackermann_publisher(velocity, steeringAngle, steeringAngleVelocity, acc, jerk, timeStep)
+        sub = rospy.Subscriber("/gazebo/model_states", ModelStates, ackermann_model_state)
         rospy.sleep(1)
 
+        print(model_state_x, model_state_y, model_state_theta)
         newDist=planning.twoDdist((startConfig[0],startConfig[1]),(model_state_x, model_state_y))
         if newDist<minDist:
             minDist=newDist
