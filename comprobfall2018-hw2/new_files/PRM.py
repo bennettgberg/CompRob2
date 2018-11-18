@@ -23,6 +23,7 @@ import planning
 #to start a new PRM, pass "none" to all of these. To extend an existing map, pass it in PianoNodes, PianoAdjacency, PianoDistances
 def PRMPiano(N,pianoNodes,pianoAdjacency,pianoDistances,prmstar, k=3):
     collisionChecks=0
+    kVal=k
     if pianoNodes is None:
         #a list of nodes
         pianoNodes=[]
@@ -36,14 +37,17 @@ def PRMPiano(N,pianoNodes,pianoAdjacency,pianoDistances,prmstar, k=3):
     #making this a function instead of calling cuts the runtime of this action in half for whatever reason
     addNode = pianoNodes.append
     for i in range(indexStart,N):
-	print "adding node " + str(i)
+        k=kVal
+        print "adding node " + str(i)
         #a temporary variable for the piano position: x,y,z, quaternions
         pianoPos=(0,0,0,0,0,0,0)
         pianoAdjacency.append([])
         pianoDistances.append([])
         #if PRM star, sets k to the log of the number of nodes in the list
         if prmstar:
-            k = np.ceil(np.log2(i))
+            k = int(np.log2(i+1))
+            if k is 0:
+                k=1
         #gets a valid position for the piano
         #NOTE: I do not know what the coordinate system is: negative numbers might be fair game
         #in which case "x<0" is not a valid criterion
@@ -70,7 +74,7 @@ def PRMPiano(N,pianoNodes,pianoAdjacency,pianoDistances,prmstar, k=3):
         #adds ten ordered elements to the list, ordered shortest to furthest
         while len(kDists)<k and j<i:
             #if the line in question doesn't intesect the obstacle
-            valid,colChecks=planning.validPath(pianoNodes[i], pianoNodes[j], 10)
+            valid,colChecks=planning.validPath(pianoNodes[i], pianoNodes[j], 8)
             collisionChecks=collisionChecks+colChecks
             if (valid): 
                 dist=planning.distance(pianoNodes[i], pianoNodes[j])
@@ -95,7 +99,7 @@ def PRMPiano(N,pianoNodes,pianoAdjacency,pianoDistances,prmstar, k=3):
         for j in range(k,i):
             dist=planning.distance(pianoNodes[i],pianoNodes[j])
             if dist < farD: 
-                valid,colChecks=planning.validPath(pianoNodes[i],pianoNodes[j], 10)
+                valid,colChecks=planning.validPath(pianoNodes[i],pianoNodes[j], 8)
                 collisionChecks=collisionChecks+colChecks
                 if (valid): 
                     #finds where in the list of k closest neighbors to insert it
@@ -132,7 +136,7 @@ def addStartandGoalPiano(pianoNodes, pianoAdjacency, pianoDistances, startConfig
     newPianoDistances=map(list, pianoDistances)
     collisionChecks=0
     if prmstar:
-        k = np.ceil(np.log2(len(pianoNodes)))
+        k = int(np.log2(len(pianoNodes)))
     for startOrGoal in range(0,2):
        # print("len(newPianoNodes)={}".format(len(newPianoNodes)))
         if startOrGoal is 0:
@@ -157,7 +161,7 @@ def addStartandGoalPiano(pianoNodes, pianoAdjacency, pianoDistances, startConfig
            # print("len(newPianoNodes)={}".format(len(newPianoNodes)))
            # print("len(pianoNodes)={}".format(len(pianoNodes)))
            # print("j={}, currIndex={}".format(j,currIndex))
-            valid,colChecks=planning.validPath(newPianoNodes[currIndex],newPianoNodes[j], 10)
+            valid,colChecks=planning.validPath(newPianoNodes[currIndex],newPianoNodes[j], 8)
             collisionChecks=collisionChecks+colChecks
             if (valid): 
                 dist=planning.distance(newPianoNodes[currIndex],newPianoNodes[j])
@@ -172,7 +176,7 @@ def addStartandGoalPiano(pianoNodes, pianoAdjacency, pianoDistances, startConfig
         for j in range(k,currIndex):
             dist=planning.distance(newPianoNodes[currIndex],newPianoNodes[j])
             if dist < farD: 
-                valid,colChecks=planning.validPath(newPianoNodes[currIndex],newPianoNodes[j], 10)
+                valid,colChecks=planning.validPath(newPianoNodes[currIndex],newPianoNodes[j], 8)
                 collisionChecks=collisionChecks+colChecks
                 if (valid): 
                     #finds where in the list of k closest neighbors to insert it
