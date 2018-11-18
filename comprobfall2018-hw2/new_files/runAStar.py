@@ -63,13 +63,11 @@ def main():
     k = 3
     nnodes = 50
     for i in range(1, len(sys.argv)):
-        if sys.argv[i] == "-n" or sys.argv[i] == "-num" or sys.argv[i] == "-number":
-            num = int(sys.argv[i+1])
+        if sys.argv[i] == "-n" or sys.argv[i] == "-N" or sys.argv[i] == "-nnodes":
+            nnodes = int(sys.argv[i+1])
             i=i+1
         elif sys.argv[i] == "-s" or sys.argv[i] == "-star":
             prmstar = True
-        elif sys.argv[i] == "-nnodes":
-            nnodes = int(sys.argv[i+1])
 	elif sys.argv[i] == "-k":
 	    k = int(sys.argv[i+1])
     #runAStar will return goal node if there's a path to goal from start
@@ -78,11 +76,14 @@ def main():
     plt.ylim(-10, 10)
     plt.xticks(np.arange(-10, 10, 1))
     plt.yticks(np.arange(-10, 10, 1))
-    twoDnodes, twoDadjacency, twoDdistances = PRM.PRMPiano(nnodes, None, None, None, prmstar, k)
-    twoDnodes, twoDadjacency, twoDdistances, startIndex, goalIndex = PRM.addStartandGoalPiano(twoDnodes, twoDadjacency, twoDdistances, (5.0, 9.0, 0.3, 1, 0, 0, 0), (4.0, 4.0, 0.3, 1, 0, 0, 0))
+    twoDnodes, twoDadjacency, twoDdistances, ncc = PRM.PRMPiano(nnodes, None, None, None, prmstar, k)
+    print "Roadmap created!"
+    twoDnodes, twoDadjacency, twoDdistances, startIndex, goalIndex, ncc2 = PRM.addStartandGoalPiano(twoDnodes, twoDadjacency, twoDdistances, (5.0, 9.0, 0.4, 1.0, 0.0, 0.0, 0.0), (1.5, 1.5, 0.4, 1.0, 0.0, 0.0, 0.0), prmstar)
+    print "Start and goal added!"
     Start = anode.Node(twoDnodes[startIndex], None, 0)
     Goal = (twoDnodes[goalIndex])
     apath = runAStar(Start, Goal, twoDnodes, twoDadjacency, twoDdistances)
+    print "A* finished!"
     #NOW MOVE ALONG THE PATH THAT WAS FOUND!
     poses = []
     if not apath == None:
@@ -121,6 +122,6 @@ def main():
     # twist = geometry_msgs.msg.Twist(geometry_msgs.msg.Vector3(0,0,0), geometry_msgs.msg.Vector3(0,0,0))
     for pose in poses:
         print "Sending (%s, %s, %s)"%(pose.position.x, pose.position.y, pose.position.z)
-        publisher.model_state_publisher(pose, "piano2")
+        publisher.model_state_publisher(pose, model_name="piano2")
         print "Sent piano to (%s, %s, %s)."%(pose.position.x, pose.position.y, pose.position.z)
 main()

@@ -18,7 +18,7 @@ def ackermann_publisher(speed, steering_angle, steering_angle_velocity, accelera
 
 	rate = rospy.Rate(float(1/time_step)) # 1/time_step Hz
 	print("hello")
-	rospy.sleep(0.5)
+	rospy.sleep(1.0) #0.5)
 
 	while not rospy.is_shutdown():
 		
@@ -29,12 +29,21 @@ def ackermann_publisher(speed, steering_angle, steering_angle_velocity, accelera
 		state.acceleration = acceleration
 		state.jerk = jerk
 
+#		rate.sleep()
+#
+#		state.speed = 0
+#		state.steering_angle = 0
+#		state.steering_angle_velocity=0
+#		state.acceleration = 0
+#		state.jerk = 0
+#
 		# rospy.loginfo(state)
 		rospy.loginfo(state)
 		print("publishing state")
 		pub.publish(state)
 		print("state published, sleeping for []".format(rate))
 		rate.sleep()
+	return
 
 def model_state_publisher(pose, twist=geometry_msgs.msg.Twist(geometry_msgs.msg.Vector3(0,0,0), geometry_msgs.msg.Vector3(0,0,0)), model_name="piano2"):
 	pub = rospy.Publisher("/gazebo/set_model_state", ModelState, queue_size=1)
@@ -61,9 +70,13 @@ def usage():
  
 if __name__ == '__main__':
 	try:
-		if len(sys.argv) == 3:
-			print "Sending to ackermann_cmd speed %s steering_angle %s)"%(sys.argv[1], sys.argv[2])
-			ackermann_publisher(sys.argv[1], sys.argv[2])
+		if len(sys.argv) == 4:
+			# print "Sending to ackermann_cmd speed %s steering_angle %s)"%(sys.argv[1], sys.argv[2])
+			# ackermann_publisher(sys.argv[1], sys.argv[2])
+			q = geometry_msgs.msg.Quaternion(0.0,0.0,0.0,1.0)
+			p = geometry_msgs.msg.Point(float(sys.argv[1]), float(sys.argv[2]), float(sys.argv[3]))
+			pose = geometry_msgs.msg.Pose(p, q)
+			model_state_publisher(pose, model_name="piano2")
 		else:
 			print usage()
 			sys.exit(1)
