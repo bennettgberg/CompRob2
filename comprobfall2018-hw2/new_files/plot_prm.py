@@ -8,7 +8,7 @@ for n in range(25, 151, 25):
         for line in infile:
             words = line.split()
             comptime = float(words[0])
-            pathqual = float(words[1])
+            pathqual = -1*float(words[1])
             if prm == "PRM_N": plt.plot(comptime, pathqual, 'b.', label="PRM")
             else: plt.plot(comptime, pathqual, 'r.', label="PRM*")
         infile.close()
@@ -24,7 +24,7 @@ for n in range(25, 151, 25):
         for line in infile:
             words = line.split()
             comptime = float(words[0])
-            pathqual = float(words[1])
+            pathqual = -1*float(words[1])
             if prm == "PRM_N": plt.plot(n, pathqual, 'b.', label="PRM")
             else: plt.plot(comptime, pathqual, 'r.', label="PRM*")
         infile.close()
@@ -40,7 +40,7 @@ for n in range(25, 151, 25):
         for line in infile:
             words = line.split()
             comptime = float(words[0])
-            pathqual = float(words[1])
+            pathqual = -1*float(words[1])
             if prm == "PRM_N": plt.plot(n, pathqual, 'b.', label="PRM")
             else: plt.plot(comptime, pathqual, 'r.', label="PRM*")
         infile.close()
