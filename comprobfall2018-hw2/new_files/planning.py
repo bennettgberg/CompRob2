@@ -12,9 +12,18 @@ import matplotlib.patches as ptc
 import rospy
 import math
 import sys
+import os
+import signal
+from subprocess import call
 
 sys.path.append('../')
 from pqp_server.srv import *
+
+class TimeoutException(Exception):
+    pass
+
+def timeout_handler(signum, frame):
+    raise TimeoutException
 
 def key(config):
     return str(config[0])+'_'+str(config[1]) + '_' + str(config[2]) + '_' + str(config[3]) + '_' + str(config[4]) + '_' + str(config[5]) + '_' + str(config[6])
@@ -50,7 +59,6 @@ def quatDist(Q1,Q2):
 #takes a configuration, outputs a boolean True if it collides, False if it is valid 
 #interfaces with gazebo
 def collides(T, R):
-
     R_flat = [1., 0., 0., 0., 1., 0., 0., 0., 1.]
 
     for i in range(len(R)):
@@ -59,18 +67,38 @@ def collides(T, R):
 
     if len(T) != 3 or len(R_flat) != 9:
         sys.exit("Incorrect list size for pqp request")
-    rospy.wait_for_service('pqp_server')
+
+    signal.signal(signal.SIGALRM, timeout_handler)
+    # print("test1")
     try:
+        rospy.wait_for_service('pqp_server', timeout=1)
+    except rospy.ROSException:
+        print "Starting pqp_ros_server"
+        os.system("cd /home/steven/catkin_ws/src/comprobfall2018-hw2/pqp_server; rosrun pqp_server pqp_ros_server &")
+        rospy.wait_for_service('pqp_server')
+        # call(["rosrun", "pqp_server", "pqp_ros_server"], cwd="/home/steven/catkin_ws/src/comprobfall2018-hw2/pqp_server")
+    #    return collides(T, R)
+    signal.alarm(1)
+    try:
+        rospy.wait_for_service('pqp_server', timeout=1)
+        # print("test2")
         pqp_server = rospy.ServiceProxy('pqp_server', pqpRequest)
         result = pqp_server(T, R_flat)
         #print result
         if(str(result)=="result: False"): result = False
         else: result = True
         #print("pqp_server returned {} for {}, {}".format(result, T, R_flat))
-        return result
+    except TimeoutException:
+        print "Service Call Failed, restarting pqp_ros_server"
+        os.system("cd /home/steven/catkin_ws/src/comprobfall2018-hw2/pqp_server; rosrun pqp_server pqp_ros_server &")
+        return collides(T, R)
     except rospy.ServiceException, e:
         print "Service Call Failed: %s"%e
-
+        return collides(T, R)
+    else:
+        signal.alarm(0)
+        return result
+    print("This should never be printed at all.")
     return True
 
 
@@ -87,9 +115,10 @@ def validPath(config1, config2, N):
         state=statesToCheck[index]
         rotationMatrix=quatToMatrix(state[3],state[4],state[5],state[6])
         check=collides([state[0],state[1],state[2]],rotationMatrix)
+        # print("checking if ({}, {}, {}) collides, result {}".format(state[0],state[1],state[2], check))
         numChecks=numChecks+1
         #if t collided anywhere, it failed
-        if check is False:
+        if check:
             return False, numChecks
     return True, numChecks
     
@@ -105,7 +134,7 @@ def getPath(state1,state2,N):
     deltaX=state2[0]-state1[0]
     deltaY=state2[1]-state1[1]
     deltaZ=state2[2]-state1[2]
-    for x in range(1,N):
+    for x in range(1,N+1):
         quatInterp=quatSLERP(quat1,quat2, x*fraction)
         statex=state1[0]+x*fraction*deltaX
         statey=state1[1]+x*fraction*deltaY
@@ -193,3 +222,14 @@ def twoDdist(pt1,pt2):
 def sample2D(xmax,ymax):
     return (xmax*rand.rand(),ymax*rand.rand())
 
+if __name__ == '__main__':
+    try:
+        # if len(sys.argv) == 4:
+        #     print(collides((float(sys.argv[1]), float(sys.argv[2]), float(sys.argv[3])),[[1,0,0],[0,1,0],[0,0,1]]))
+        # else:
+        #     print("3 arguments for translation")
+        #     sys.exit(1)
+
+        print(validPath((1.5, 1.5, 0.4, 1.0, 0.0, 0.0, 0.0), (5.0, 9.0, 0.4, 1.0, 0.0, 0.0, 0.0) , 10))
+    except rospy.ROSInterruptException:
+        pass
