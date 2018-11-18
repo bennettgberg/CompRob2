@@ -34,14 +34,14 @@ def ackermann_publisher(speed, steering_angle, steering_angle_velocity, accelera
 		rate.sleep()
 		break
 
-def model_state_publisher(pose, twist=geometry_msgs.msg.Twist(geometry_msgs.msg.Vector3(0,0,0), geometry_msgs.msg.Vector3(0,0,0)), model_name):
+def model_state_publisher(pose, twist=geometry_msgs.msg.Twist(geometry_msgs.msg.Vector3(0,0,0), geometry_msgs.msg.Vector3(0,0,0)), model_name="piano2"):
 	pub = rospy.Publisher("/gazebo/set_model_state", ModelState, queue_size=1)
 	rospy.init_node('model_state_controller', anonymous=True)
 	rate = rospy.Rate(10) # 10hz
 	while not rospy.is_shutdown():
 		
 		model_state = ModelState()
-		model_state.model_name = "model_name"
+		model_state.model_name = model_name
 		model_state.pose = pose
 		model_state.twist = twist
 		model_state.reference_frame = "world"

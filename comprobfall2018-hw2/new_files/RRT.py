@@ -18,7 +18,7 @@ import publisher
 from gazebo_msgs.srv import SetModelState, GetModelState
 from gazebo_msgs.msg import ModelState, ModelStates
 import geometry_msgs.msg
-from tf.transformations import euler_from_quaternion
+from tf.transformations import euler_from_quaternion, quaternion_from_euler
 
 def sampleRRTPt(xmax,ymax,shift,polys):
     #gets a valid X and Y in the boundary of the actual world, eliminates points that are obviously inside obstacles
@@ -166,20 +166,16 @@ def RRTROS(start, goal, N, greedy):
 #goalLoc is (x,y)
 def RRTSampleControls(startConfig,goalLoc):
 
-    q = tf.transformations.quaternion_from_euler(startConfig[3],0,0, axes='xyzr')
-    p = geometry_msgs.msg.Point(*startConfig[0:3])
+    q = quaternion_from_euler(startConfig[2],0,0, axes='sxyz')
+    q = geometry_msgs.msg.Quaternion(q[1],q[2],q[3],q[0])
+    p = geometry_msgs.msg.Point(startConfig[0],startConfig[1],0)
     pose = geometry_msgs.msg.Pose(p, q)
-    publisher.model_state_publisher(pose, "ackermann_vehicle")
+    publisher.model_state_publisher(pose, model_name="ackermann_vehicle")
 
     acc=12
     jerk=8
     minDist=float('inf')
 
-    global model_state_x
-    global model_state_y
-    global model_state_quaternion
-
-    rospy.init_node("ackermann_model_state_subscriber", anonymous=True)
     for derp in range(0,5):
         #time to propagate this control
         # timeStep=rand.rand()*.32+.1
@@ -190,7 +186,7 @@ def RRTSampleControls(startConfig,goalLoc):
         #tangent velocity
         # velocity=rand.rand()*15
 
-        timeStep=0.1
+        timeStep=5
 
         #tangent velocity
         velocity=15
@@ -256,6 +252,12 @@ def main():
         index=carParents[index]
     #visualizes solution    
     RRT2DshowSolution(solution)
+
+    global model_state_x
+    global model_state_y
+    global model_state_quaternion
+
+    rospy.init_node("ackermann_model_state_subscriber", anonymous=True)
     return 0
 
 if __name__ == "__main__":
