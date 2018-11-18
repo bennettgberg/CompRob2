@@ -87,8 +87,8 @@ def main():
     #run 50 trials
     while i < 50:
 	print "STARTING ITERATION "+ str(i) 
-        (startx, starty) = planning.sample2D()
-        (goalx, goaly) = planning.sample2D()
+        (startx, starty) = planning.sample2D(10, 10)
+        (goalx, goaly) = planning.sample2D(10, 10)
         #piano start and goal must be on the ground, have no rotation
         start = (startx, starty, 0.3, 1, 0, 0, 0)
         goal = (goalx, goaly, 0.3, 1, 0, 0, 0)
@@ -107,6 +107,6 @@ def main():
         i += 1
     prm_file.close()
     #plot the final data: time vs. path quality
-    plt.plot(times, path_quals, '-b')
+    plt.plot(prm_times, prm_quals, '-b')
     plt.show()
 main()
