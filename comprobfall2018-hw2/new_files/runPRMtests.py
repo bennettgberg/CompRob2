@@ -60,9 +60,9 @@ def runAStar(Start, goal, nodes, adjacency, distances):
 def main():
     #locate start vertex of piano bot and goal vertex.
     """Read the input arguments"""
-    prmstar = False
-    minNodes=25
-    maxNodes=100
+    prmstar = True
+    minNodes=50
+    maxNodes=150
     nodeIncrement=25
     nnodes = minNodes
     pianoNodes=None
@@ -71,6 +71,7 @@ def main():
     prmstar=False
     buildingCollisionChecks=[]
     runningCollisionChecks=[]
+    buildCollideFile=open("kNearestBuildingCollisions.txt" "w")
     while nnodes<=maxNodes:
         if not prmstar:
             filenameString="PRM_N="+str(nnodes)+"_data.txt"
@@ -81,6 +82,7 @@ def main():
         prm_quals = []
         print "Starting to build PRM"
         pianoNodes, pianoAdjacency, pianoDistances,collisions = PRM.PRMPiano(nnodes,pianoNodes, pianoAdjacency, pianoDistances,prmstar)
+        buildCollideFile.write(str(nnodes)+'\t'+str(collisions)+'\n')
         buildingCollisionChecks.append(collisions)
         i = 0
         runningCollisionChecks.append(0)
@@ -93,13 +95,13 @@ def main():
             start = (startx, starty, 0.3, 1, 0, 0, 0)
             goal = (goalx, goaly, 0.3, 1, 0, 0, 0)
             newPianoNodes, newPianoAdjacency, newPianoDistances, startIndex, goalIndex,collisions = PRM.addStartandGoalPiano(pianoNodes, pianoAdjacency, pianoDistances, start, goal,prmstar)
-            runningCollisionChecks[len(runningCollisionChecks)-1]=runningCollisionChecks[len(runningCollisionChecks)-1]+collisions
             Start = anode.Node(newPianoNodes[startIndex], None, 0)
             Goal = (newPianoNodes[goalIndex])
             apath, final_dist = runAStar(Start, Goal, newPianoNodes, newPianoAdjacency, newPianoDistances)
             #if path wasn't found, repeat this trial
             if not apath:
                 continue
+            runningCollisionChecks[len(runningCollisionChecks)-1]=runningCollisionChecks[len(runningCollisionChecks)-1]+collisions            
             prm_quals.append(final_dist)
             prm_file.write(str(runningCollisionChecks[len(runningCollisionChecks)-1]) + '\t' + str(final_dist) + '\n ')
             i += 1
