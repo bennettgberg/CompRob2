@@ -82,14 +82,16 @@ def validPath(config1, config2, N):
     #gets interpolated states
     statesToCheck=getPath(config1,config2,N)
     check=True
+    numChecks=0
     for index in range(0,len(statesToCheck)):
         state=statesToCheck[index]
         rotationMatrix=quatToMatrix(state[3],state[4],state[5],state[6])
         check=collides([state[0],state[1],state[2]],rotationMatrix)
+        numChecks=numChecks+1
         #if t collided anywhere, it failed
         if check is False:
-            return False
-    return True
+            return False, numChecks
+    return True, numChecks
     
 #takes in a start state, a terminal state, and a number of frames
 #returns a list of n state tuples interpolating the two states linearly
@@ -186,10 +188,6 @@ def quatToMatrix(w,x,y,z):
 #returns the euclidean distance between two x y coordinates
 def twoDdist(pt1,pt2):
     return np.sqrt((pt1[0]-pt2[0])**2+(pt1[1]-pt2[1])**2)  
-
-#returns a quaternion distance metric : this is given by the absolute value of the inner product
-def quaternionDistance(Quat1,Quat2):
-    return(np.abs(Quat1[0]*Quat2[0]+Quat1[1]*Quat2[1]+Quat1[2]*Quat2[2]+Quat1[3]*Quat2[3]))
     
 #returns a 2D point in the 2D square defined from (0,0) to (xmax,ymax)    
 def sample2D(xmax,ymax):

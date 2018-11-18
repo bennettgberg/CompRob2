@@ -21,8 +21,9 @@ import planning
 #returns an array of nodes, a 2D array of indices the node at the row's index is connected to, and a distances array corresponding to these connections
 #this is actually traversed using the Astar algorithm
 #to start a new PRM, pass "none" to all of these. To extend an existing map, pass it in PianoNodes, PianoAdjacency, PianoDistances
-def PRMPiano(N,PianoNodes,PianoAdjacency,PianoDistances,prmstar, k=3):
-    if PianoNodes is None:
+def PRMPiano(N,pianoNodes,pianoAdjacency,pianoDistances,prmstar, k=3):
+    collisionChecks=0
+    if pianoNodes is None:
         #a list of nodes
         pianoNodes=[]
         #if you assign it to a variable, it cuts the runtime in half
@@ -31,7 +32,7 @@ def PRMPiano(N,PianoNodes,PianoAdjacency,PianoDistances,prmstar, k=3):
         pianoDistances=[]
         indexStart=0
     else:
-        indexStart=len(PianoNodes)
+        indexStart=len(pianoNodes)
     #making this a function instead of calling cuts the runtime of this action in half for whatever reason
     addNode = pianoNodes.append
     for i in range(indexStart,N):
@@ -48,6 +49,7 @@ def PRMPiano(N,PianoNodes,PianoAdjacency,PianoDistances,prmstar, k=3):
         #in which case "x<0" is not a valid criterion
         while True:
             pianoPos=planning.sample6D(10,10,5)
+            collisionChecks=collisionChecks+1
             collides = planning.collides(pianoPos[0:3], planning.quatToMatrix(pianoPos[3],pianoPos[4],pianoPos[5],pianoPos[6]))
             if not collides:
           #      print("no collision for {}".format(pianoPos))
@@ -68,7 +70,9 @@ def PRMPiano(N,PianoNodes,PianoAdjacency,PianoDistances,prmstar, k=3):
         #adds ten ordered elements to the list, ordered shortest to furthest
         while len(kDists)<k and j<i:
             #if the line in question doesn't intesect the obstacle
-            if (planning.validPath(pianoNodes[i], pianoNodes[j], 10)): 
+            valid,colChecks=planning.validPath(pianoNodes[i], pianoNodes[j], 10)
+            collisionChecks=collisionChecks+colChecks
+            if (valid): 
                 dist=planning.distance(pianoNodes[i], pianoNodes[j])
                 if dist>farD:
                     farD=dist
@@ -91,7 +95,9 @@ def PRMPiano(N,PianoNodes,PianoAdjacency,PianoDistances,prmstar, k=3):
         for j in range(k,i):
             dist=planning.distance(pianoNodes[i],pianoNodes[j])
             if dist < farD: 
-                if (planning.validPath(pianoNodes[i],pianoNodes[j], 10)): 
+                valid,colChecks=planning.validPath(pianoNodes[i],pianoNodes[j], 10)
+                collisionChecks=collisionChecks+colChecks
+                if (valid): 
                     #finds where in the list of k closest neighbors to insert it
                     for p in range(0,len(kIndices)):
                         if dist<=kDists[p]:
@@ -113,16 +119,18 @@ def PRMPiano(N,PianoNodes,PianoAdjacency,PianoDistances,prmstar, k=3):
             pianoDistances[i].append(kDists[j])
             pianoAdjacency[ind2].append(i)
             pianoDistances[ind2].append(kDists[j])
-    return pianoNodes, pianoAdjacency, pianoDistances    
+    return pianoNodes, pianoAdjacency, pianoDistances, collisionChecks    
 
 #input: list of nodes, adjacency matrix, and distance matrix
 #returns: augmented nodes, adjacency matrix, and distance matrix, index of start and goal states
 #start and goal states will be second to last and last nodes respectively
 #these new items are NOT the same objects as the old ones: the previous lists are reusable
 def addStartandGoalPiano(pianoNodes, pianoAdjacency, pianoDistances, startConfig, endConfig,prmstar, k=3):
+    collisionChecks=0
     newPianoAdjacency = map(list, pianoAdjacency)
     newPianoNodes=map(list, pianoNodes)
     newPianoDistances=map(list, pianoDistances)
+    collisionChecks=0
     if prmstar:
         k = np.ceil(np.log2(len(pianoNodes)))
     for startOrGoal in range(0,2):
@@ -149,7 +157,9 @@ def addStartandGoalPiano(pianoNodes, pianoAdjacency, pianoDistances, startConfig
            # print("len(newPianoNodes)={}".format(len(newPianoNodes)))
            # print("len(pianoNodes)={}".format(len(pianoNodes)))
            # print("j={}, currIndex={}".format(j,currIndex))
-            if (planning.validPath(newPianoNodes[currIndex],newPianoNodes[j], 10)): 
+            valid,colChecks=planning.validPath(newPianoNodes[currIndex],newPianoNodes[j], 10)
+            collisionChecks=collisionChecks+colChecks
+            if (valid): 
                 dist=planning.distance(newPianoNodes[currIndex],newPianoNodes[j])
                 if dist>farD:
                     farD=dist
@@ -162,7 +172,9 @@ def addStartandGoalPiano(pianoNodes, pianoAdjacency, pianoDistances, startConfig
         for j in range(k,currIndex):
             dist=planning.distance(newPianoNodes[currIndex],newPianoNodes[j])
             if dist < farD: 
-                if (planning.validPath(newPianoNodes[currIndex],newPianoNodes[j], 10)): 
+                valid,colChecks=planning.validPath(newPianoNodes[currIndex],newPianoNodes[j], 10)
+                collisionChecks=collisionChecks+colChecks
+                if (valid): 
                     #finds where in the list of k closest neighbors to insert it
                     for p in range(0,len(kIndices)):
                         if dist<=kDists[p]:
@@ -186,7 +198,7 @@ def addStartandGoalPiano(pianoNodes, pianoAdjacency, pianoDistances, startConfig
             newPianoDistances[ind2].append(kDists[j])
     startIndex=len(newPianoNodes)-2    
     goalIndex=len(newPianoNodes)-1    
-    return newPianoNodes, newPianoAdjacency, newPianoDistances, startIndex, goalIndex
+    return newPianoNodes, newPianoAdjacency, newPianoDistances, startIndex, goalIndex, collisionChecks
 
 #creates a 2D prm for testing the algorithm: will be deleted from final code
 #returns an array of nodes, a 2D array of indices the node at the row's index is connected to, and a distances array corresponding to these connections
