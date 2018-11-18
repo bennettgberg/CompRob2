@@ -372,9 +372,9 @@ def startAndGoal2DPRM(twoDNodes, twoDadjacency, twoDdistances, startConfig,endCo
     return new2DNodes, new2Dadjacency, new2Ddistances, startIndex,goalIndex 
     
 def PRM2Dshow(twoDnodes,twoDadjacency,twoDdistances):
-    polyXs=[1,1,2,2]
-    polyYs=[1,2,2,1]
-    plt.fill(polyXs,polyYs)
+#    polyXs=[1,1,2,2]
+#    polyYs=[1,2,2,1]
+#    plt.fill(polyXs,polyYs)
     for i in range(0,len(twoDadjacency)-1):
         for j in range(i,len(twoDadjacency[i])):
             if twoDadjacency[i][j]>i:
