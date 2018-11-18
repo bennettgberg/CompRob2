@@ -1,16 +1,15 @@
 import astar_fringe as fring
 import astar_node as anode
 import astar_closed as closed
-import math
 import matplotlib.pyplot as plt
 import numpy as np
 import matplotlib
 import sys
 import PRM
-import RRT
 import planning
 import geometry_msgs.msg
 import time
+from itertools import repeat
 
 #return heuristic of start while searching for goal (given by Equation 1 in assignment instructions). Or straight-line distance if running FDA*.
 def heur(config, goalConfig):
@@ -72,6 +71,30 @@ def main():
     buildingCollisionChecks=[]
     runningCollisionChecks=[]
     buildCollideFile=open("kNearestBuildingCollisions.txt" "w")
+    
+    
+    #generates 50 start and end points
+    startList=[]
+    goalList=[]
+    firstSolved=list(repeat(-1, 50))
+    i=0
+    while i<50:
+            (startx, starty) = planning.sample2D(10, 10)
+            (goalx, goaly) = planning.sample2D(10, 10)
+            #piano start and goal must be on the ground, have no rotation
+            start = (startx, starty, 0.3, 1, 0, 0, 0)
+            goal = (goalx, goaly, 0.3, 1, 0, 0, 0)
+            startCollides = planning.collides(start[0:3], planning.quatToMatrix(start[3],start[4],start[5],start[6]))
+            goalCollides = planning.collides(goal[0:3], planning.quatToMatrix(goal[3],goal[4],goal[5],goal[6]))
+            plt.plot(startx,starty,'r.',markersize=5)
+            plt.plot(goalx,goaly,'b.',markersize=5)
+            if goalCollides or startCollides:
+                continue
+            else:
+                startList.append(start)
+                goalList.append(goal)
+                i+=1
+            
     while nnodes<=maxNodes:
         if not prmstar:
             filenameString="PRM_N="+str(nnodes)+"_data.txt"
@@ -89,26 +112,36 @@ def main():
         #run 50 trials
         while i < 50:
             print "STARTING ITERATION "+ str(i) 
-            (startx, starty) = planning.sample2D(10, 10)
-            (goalx, goaly) = planning.sample2D(10, 10)
-            #piano start and goal must be on the ground, have no rotation
-            start = (startx, starty, 0.3, 1, 0, 0, 0)
-            goal = (goalx, goaly, 0.3, 1, 0, 0, 0)
-            newPianoNodes, newPianoAdjacency, newPianoDistances, startIndex, goalIndex,collisions = PRM.addStartandGoalPiano(pianoNodes, pianoAdjacency, pianoDistances, start, goal,prmstar)
+            newPianoNodes, newPianoAdjacency, newPianoDistances, startIndex, goalIndex,collisions = PRM.addStartandGoalPiano(pianoNodes, pianoAdjacency, pianoDistances, startList[i], goalList[i],prmstar)
             Start = anode.Node(newPianoNodes[startIndex], None, 0)
             Goal = (newPianoNodes[goalIndex])
             apath, final_dist = runAStar(Start, Goal, newPianoNodes, newPianoAdjacency, newPianoDistances)
             #if path wasn't found, repeat this trial
             if not apath:
+                i=i+1
                 continue
-            runningCollisionChecks[len(runningCollisionChecks)-1]=runningCollisionChecks[len(runningCollisionChecks)-1]+collisions            
+            #runningCollisionChecks[len(runningCollisionChecks)-1]=runningCollisionChecks[len(runningCollisionChecks)-1]+collisions            
+            if firstSolved[i] is -1:
+                firstSolved[i]=nnodes
             prm_quals.append(final_dist)
             prm_file.write(str(runningCollisionChecks[len(runningCollisionChecks)-1]) + '\t' + str(final_dist) + '\n ')
             i += 1
         nnodes=nnodes+nodeIncrement    
-        prm_file.close()
-        #plot the final data: time vs. path quality
-       # plt.plot(prm_times, prm_quals, '.b')
-        #plt.show()
+        for k in range(0,50):
+            plt.plot(startList[k][0],startList[k][1],'r.',markersize=5)
+            plt.plot(goalList[k][0],goalList[k],[1],'b.',markersize=5)
+    plt.xlabel("x")
+    plt.ylabel("y")
+    plt.set_xlim([0,10])
+    plt.set_ylim([0,10])
+    plt.title("Randomized Start (red) and Goal (blue) Configurations")
+    plt.show()
+    prm_file.close()
+    #histogram of when these pairs were first solved
+    plt.hist(firstSolved,bins=[-1,25,50,75,100,125,151])
+    plt.title("Map Size for first solutions of start and goal pairs")
+    plt.xlabel("number of nodes: -1 indicates no solution")
+    plt.ylabel("number of pairs first solved then")
+    plt.show()
     print("Final Build Times for each interation:"+str(buildingCollisionChecks)) 
 main()
