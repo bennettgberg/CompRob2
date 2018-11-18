@@ -69,11 +69,16 @@ def main():
         elif sys.argv[i] == "-star" or sys.argv[i] == "-s":
             prmstar = True
     #runAStar will return goal node if there's a path to goal from start
-    data_file = open("PRM_data.txt", "w")
+    if not star:
+        prm_file = open("PRM_data.txt", "w")
+    else:
+        prm_file = open("PRMstar_data.txt", "w")
 
     k = 1
     if prmstar: 
         k = int(math.log(nnodes))
+    prm_times = []
+    prm_quals = []
     init_time = time.time()
     twoDnodes, twoDadjacency, twoDdistances = PRM.PRMPiano(nnodes, k)
     build_time = time.time() - init_time #time to build the PRM (without start and goal nodes)
@@ -94,11 +99,11 @@ def main():
         #if path wasn't found, repeat this trial
         if not apath:
             continue
-        times.append(final_time)
-        path_quals.append(final_dist)
-        data_file.write(str(final_time) + "\t" + str(final_dist) + "\n")
+        prm_times.append(final_time)
+        prm_quals.append(final_dist)
+        prm_file.write(str(final_time) + "\t" + str(final_dist) + "\n")
         i += 1
-    data_file.close()
+    prm_file.close()
     #plot the final data: time vs. path quality
     plt.plot(times, path_quals, '-b')
     plt.show()
