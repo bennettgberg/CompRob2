@@ -119,10 +119,12 @@ def PRMPiano(N,PianoNodes,PianoAdjacency,PianoDistances,prmstar, k=3):
 #returns: augmented nodes, adjacency matrix, and distance matrix, index of start and goal states
 #start and goal states will be second to last and last nodes respectively
 #these new items are NOT the same objects as the old ones: the previous lists are reusable
-def addStartandGoalPiano(pianoNodes, pianoAdjacency, pianoDistances, startConfig, endConfig, k=3):
+def addStartandGoalPiano(pianoNodes, pianoAdjacency, pianoDistances, startConfig, endConfig,prmstar, k=3):
     newPianoAdjacency = map(list, pianoAdjacency)
     newPianoNodes=map(list, pianoNodes)
     newPianoDistances=map(list, pianoDistances)
+    if prmstar:
+        k = np.ceil(np.log2(len(pianoNodes)))
     for startOrGoal in range(0,2):
        # print("len(newPianoNodes)={}".format(len(newPianoNodes)))
         if startOrGoal is 0:
