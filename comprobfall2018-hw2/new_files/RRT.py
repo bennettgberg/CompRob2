@@ -183,14 +183,14 @@ def RRTSampleControls(startConfig,goalLoc):
         #time to propagate this control
         # timeStep=rand.rand()*.32+.1
         #steering angle
-        steeringAngle=rand.rand()*.78
+        steeringAngle=rand.rand()*0.78
 
-        steeringAngleVelocity=4
+        steeringAngleVelocity=4.0
         #tangent velocity
-        velocity=rand.rand()*.3+.2
+        velocity=rand.rand()*1.0+1.5
 
         #fix the timestep to 1 second
-        timeStep=1
+        timeStep=1.0
 
 
 

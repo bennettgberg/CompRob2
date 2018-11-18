@@ -14,7 +14,7 @@ sys.path.append('../ackermann/ackermann_vehicle_gazebo/nodes/')
 import ackermann_controller
 
 def ackermann_publisher(speed, steering_angle, steering_angle_velocity, acceleration, jerk, time_step):
-	pub = rospy.Publisher("ackermann_cmd", AckermannDrive, queue_size=1)
+	pub = rospy.Publisher("/ackermann_cmd", AckermannDrive, queue_size=10)
 	# rospy.init_node('ackermann_controller', anonymous=True)
 
 	rate = rospy.Rate(10.0) #float(1/time_step)) # 1/time_step Hz
@@ -27,16 +27,18 @@ def ackermann_publisher(speed, steering_angle, steering_angle_velocity, accelera
 		state.steering_angle = steering_angle
 		state.steering_angle_velocity=steering_angle_velocity
 		state.speed = speed
-		state.acceleration = 0 #acceleration -bg1
-		state.jerk = 0 #jerk -bg2
+		state.acceleration = acceleration #acceleration -bg1
+		state.jerk = jerk #jerk -bg2
 
 		#startTime=rospy.Time.from_sec(rospy.get_time())
 		#while rospy.Time.now()<rospy.time.from_sec(startTime)+time_step:
 		#	pub.publish(state)
 		#for i in range(0,time_step):
+
 		init_time = time.time()
 		while time.time() < init_time + time_step:
 			pub.publish(state)
+			rospy.loginfo(state)
 		#rospy.sleep(1) #time_step) -bg3
 #		rate.sleep()
 #
@@ -47,7 +49,7 @@ def ackermann_publisher(speed, steering_angle, steering_angle_velocity, accelera
 		state.jerk = 0
 		
 		rospy.loginfo(state)
-		print("publishing state")
+		print("resetting control state")
 		pub.publish(state)
 		print("state published, sleeping for {}".format(rate.remaining()))
 		rate.sleep()
@@ -55,7 +57,7 @@ def ackermann_publisher(speed, steering_angle, steering_angle_velocity, accelera
 	return
 
 def model_state_publisher(pose, twist=geometry_msgs.msg.Twist(geometry_msgs.msg.Vector3(0,0,0), geometry_msgs.msg.Vector3(0,0,0)), model_name="piano2"):
-	pub = rospy.Publisher("/gazebo/set_model_state", ModelState, queue_size=1)
+	pub = rospy.Publisher("/gazebo/set_model_state", ModelState, queue_size=10)
 	rospy.init_node('model_state_controller', anonymous=True)
 	rate = rospy.Rate(10) # 10hz
 	while not rospy.is_shutdown():
