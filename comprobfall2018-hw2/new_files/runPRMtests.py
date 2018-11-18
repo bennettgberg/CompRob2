@@ -61,7 +61,7 @@ def main():
     #locate start vertex of piano bot and goal vertex.
     """Read the input arguments"""
     prmstar = False
-    nnodes = 500
+    nnodes = 100
     for i in range(1, len(sys.argv)):
         if sys.argv[i] == "-n" or sys.argv[i] == "-N" or sys.argv[i] == "-nnodes":
             nnodes = int(sys.argv[i+1])
@@ -70,8 +70,10 @@ def main():
             prmstar = True
     #runAStar will return goal node if there's a path to goal from start
     if not prmstar:
+        filenameString="PRM_N="+str(nnodes)+"_data.txt"
         prm_file = open("PRM_data.txt", "w")
     else:
+        filenameString="PRMstar_N="+str(nnodes)+"_data.txt"
         prm_file = open("PRMstar_data.txt", "w")
 
     k = 1

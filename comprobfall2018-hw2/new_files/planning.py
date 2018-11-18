@@ -183,8 +183,13 @@ def quatToMatrix(w,x,y,z):
     R[2][2]=1-2*x**2-2*y**2
     return R
 
+#returns the euclidean distance between two x y coordinates
 def twoDdist(pt1,pt2):
-    return np.sqrt((pt1[0]-pt2[0])**2+(pt1[1]-pt2[1])**2)    
+    return np.sqrt((pt1[0]-pt2[0])**2+(pt1[1]-pt2[1])**2)  
+
+#returns a quaternion distance metric : this is given by the absolute value of the inner product
+def quaternionDistance(Quat1,Quat2):
+    return(np.abs(Quat1[0]*Quat2[0]+Quat1[1]*Quat2[1]+Quat1[2]*Quat2[2]+Quat1[3]*Quat2[3]))
     
 #returns a 2D point in the 2D square defined from (0,0) to (xmax,ymax)    
 def sample2D(xmax,ymax):
