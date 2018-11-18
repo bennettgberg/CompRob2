@@ -72,10 +72,10 @@ def main():
 	    k = int(sys.argv[i+1])
     #runAStar will return goal node if there's a path to goal from start
 
-    plt.xlim(-10, 10)
-    plt.ylim(-10, 10)
-    plt.xticks(np.arange(-10, 10, 1))
-    plt.yticks(np.arange(-10, 10, 1))
+    plt.xlim(-2, 10)
+    plt.ylim(0, 10)
+    plt.xticks(np.arange(-2, 10, 1))
+    plt.yticks(np.arange(0, 10, 1))
     twoDnodes, twoDadjacency, twoDdistances, ncc = PRM.PRMPiano(nnodes, None, None, None, prmstar, k)
     print "Roadmap created!"
     twoDnodes, twoDadjacency, twoDdistances, startIndex, goalIndex, ncc2 = PRM.addStartandGoalPiano(twoDnodes, twoDadjacency, twoDdistances, (5.0, 9.0, 0.4, 1.0, 0.0, 0.0, 0.0), (1.5, 1.5, 0.4, 1.0, 0.0, 0.0, 0.0), prmstar)

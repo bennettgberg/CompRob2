@@ -184,12 +184,10 @@ def RRTSampleControls(startConfig,goalLoc):
 
         steeringAngleVelocity=4
         #tangent velocity
-        # velocity=rand.rand()*15
+        velocity=rand.rand()*.3+.2
 
-        timeStep=5
+        timeStep=1
 
-        #tangent velocity
-        velocity=15
 
 
         #Publishing controls to publisher

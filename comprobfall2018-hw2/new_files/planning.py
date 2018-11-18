@@ -144,9 +144,9 @@ def getPath(state1,state2,N):
 
 #returns randomized x,y,z, and a unit quaternion
 def sample6D(xmax,ymax,zmax):
-    x=rand.rand()*2*xmax-10
-    y=rand.rand()*2*ymax-10
-    z=rand.rand()*zmax+0.3
+    x=rand.rand()*(xmax+2)-2
+    y=rand.rand()*ymax
+    z=rand.rand()*zmax+0.4
     s=rand.rand()
     sigma1=np.sqrt(1-s)
     sigma2=np.sqrt(s)

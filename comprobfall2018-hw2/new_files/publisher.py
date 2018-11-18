@@ -23,21 +23,20 @@ def ackermann_publisher(speed, steering_angle, steering_angle_velocity, accelera
 	while not rospy.is_shutdown():
 		
 		state = AckermannDrive()
-		state.speed = speed
 		state.steering_angle = steering_angle
 		state.steering_angle_velocity=steering_angle_velocity
+		state.speed = speed
 		state.acceleration = acceleration
 		state.jerk = jerk
 
 #		rate.sleep()
 #
-#		state.speed = 0
 #		state.steering_angle = 0
 #		state.steering_angle_velocity=0
+#		state.speed = 0
 #		state.acceleration = 0
 #		state.jerk = 0
 #
-		# rospy.loginfo(state)
 		rospy.loginfo(state)
 		print("publishing state")
 		pub.publish(state)
