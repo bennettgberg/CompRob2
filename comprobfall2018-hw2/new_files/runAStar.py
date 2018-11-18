@@ -10,6 +10,7 @@ import PRM
 import RRT
 import planning
 import geometry_msgs.msg
+import publisher
 
 #return heuristic of start while searching for goal (given by Equation 1 in assignment instructions). Or straight-line distance if running FDA*.
 def heur(config, goalConfig):
@@ -96,24 +97,26 @@ def main():
         while current != None: 
             path.append(current)
             current = current.parent
-        current = path.pop()
-        while path != []:
-            print("Position pos: x={}, y={}".format(current.config[0], current.config[1]))
-            tbx.append(current.config[0])
-            tby.append(current.config[1])
-            current = path.pop()
+        #current = path.pop()
+        #while path != []:
+        for i in range(len(path)):
+            states = planning.getPath(path[i].config, path[i+1].config, 10)
+            for j in range(len(states)):
+                print("Position pos: x={}, y={}".format(states[j][0], states[j][1]))
+                tbx.append(states[j][0])
+                tby.append(states[j][1])
+              #  current = path.pop()
 
-            import publisher
-            # add points to list to send to turtlebot_control_client
-            q = geometry_msgs.msg.Quaternion(current.config[4], current.config[5], current.config[6], current.config[3])
-            p = geometry_msgs.msg.Point(*current.config[0:3])
-            pose = geometry_msgs.msg.Pose(p, q)
-            poses.append(pose)
+                # add points to list to send to turtlebot_control_client
+                q = geometry_msgs.msg.Quaternion(states[j][4], states[j][5], states[j][6], states[j][3])
+                p = geometry_msgs.msg.Point(*states[j][0:3])
+                pose = geometry_msgs.msg.Pose(p, q)
+                poses.append(pose)
 
-        print("Position: x={}, y={}".format(current.config[0], current.config[1]))
-        tbx.append(current.config[0])
-        tby.append(current.config[1])
-        plt.plot(tbx, tby)
+                print("Position: x={}, y={}".format(states[j][0], states[j][1]))
+                tbx.append(states[j][0])
+                tby.append(states[j][1])
+                plt.plot(tbx, tby)
     else:
         print("Error! No path found!")
     plt.show()
