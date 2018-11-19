@@ -224,8 +224,9 @@ def RRTSampleControls(startConfig, sampleLoc, greedy):
             print("derp = {}, distance = {}".format(derp, newDist))
         derp=derp+1
 
-        publisher.model_state_publisher(pose, model_name="ackermann_vehicle")
-        rospy.sleep(1)
+        if derp=1:
+            publisher.model_state_publisher(pose, model_name="ackermann_vehicle")
+            rospy.sleep(1)
     return newConfig,newControls
 
 
