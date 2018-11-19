@@ -258,40 +258,44 @@ def main():
     greedy_times = []
     quals = []
     greedy_quals = []
-    start=(-7.5,-7,.5*np.pi)
+    #start=(-7.5,-7,.5*np.pi)
+    start=[(10,6.5),(10,4.5),(8,4.5),(8,6.5)] #Just to test to make sure it's working
     goal=[(10,6.5),(10,4.5),(8,4.5),(8,6.5)]
-    for greedy in [True, False]:
-        if greedy:
-            outfile = open("time_v_qual_greedy.txt", "w")
-        else:
-            outfile = open("time_v_qual.txt", "w")
-        for i in range(25):
-          #  init_time = time.time()
-            #*Add distances variable!!!!!!!!!!!!!
-            (carConfigs, carControls, carChildren,carParents, goalIndex, tottime)=RRT.RRTROS(start, goal, 250, greedy)
-          #  tottime = time.time()-init_time
-            index=goalIndex
-            solution=[]
-            #traces up the tree and appends every node as it is found
-            print("Solution found, tracing back through the tree")
-	    #goes back up the tree all the way to the first part
-            totD = 0
-            while(index is not 0):
-                solution.insert(0,carConfigs[index])
-                totD += distances[index]
-                index=carParents[index]
-                totD=totD+carControls[index][2]*carControls[index][0]
-            outfile.write( str(tottime) + " \t" + str(totD) + "\n")
-	    #inserts the start node
-	    solution.insert(0,carConfigs[0])
-            #visualizes solution    
-            RRT2DshowSolution(solution)
+    greedy = False
+    if len(sys.argv) > 1:
+        if sys.argv[1] == '-g' or sys.argv[1] == '-greedy':
+            greedy = True
+    if greedy:
+        outfile = open("time_v_qual_greedy.txt", "w")
+    else:
+        outfile = open("time_v_qual.txt", "w")
+    for i in range(25):
+      #  init_time = time.time()
+        #*Add distances variable!!!!!!!!!!!!!
+        (carConfigs, carControls, carChildren,carParents, goalIndex, tottime)=RRT.RRTROS(start, goal, 250, greedy)
+      #  tottime = time.time()-init_time
+        index=goalIndex
+        solution=[]
+        #traces up the tree and appends every node as it is found
+        print("Solution found, tracing back through the tree")
+        #goes back up the tree all the way to the first part
+        totD = 0
+        while(index is not 0):
+            solution.insert(0,carConfigs[index])
+            totD += distances[index]
+            index=carParents[index]
+            totD=totD+carControls[index][2]*carControls[index][0]
+        outfile.write( str(tottime) + " \t" + str(totD) + "\n")
+        #inserts the start node
+        solution.insert(0,carConfigs[0])
+        #visualizes solution    
+        RRT2DshowSolution(solution)
 
-            global model_state_x
-            global model_state_y
-            global model_state_quaternion
+        global model_state_x
+        global model_state_y
+        global model_state_quaternion
 
-            rospy.init_node("ackermann_model_state_subscriber", anonymous=True)
+        rospy.init_node("ackermann_model_state_subscriber", anonymous=True)
         outfile.close()
     return 0
 
