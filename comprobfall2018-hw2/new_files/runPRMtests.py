@@ -10,6 +10,7 @@ import planning
 import geometry_msgs.msg
 import time
 from itertools import repeat
+import sys
 
 #return heuristic of start while searching for goal (given by Equation 1 in assignment instructions). Or straight-line distance if running FDA*.
 def heur(config, goalConfig):
@@ -67,10 +68,10 @@ def main():
     pianoNodes=None
     pianoAdjacency=None
     pianoDistances=None
-    prmstar=False
+    #prmstar=False
     buildingCollisionChecks=[]
     runningCollisionChecks=[]
-    buildCollideFile=open("kNearestBuildingCollisions.txt" "w")
+    #buildCollideFile=open("kNearestBuildingCollisions.txt" "w")
     
     
     #generates 50 start and end points
@@ -79,22 +80,44 @@ def main():
     firstSolved=list(repeat(-1, 50))
     i=0
     while i<50:
+            print("adding "+str(i)+"th start point")
             (startx, starty) = planning.sample2D(10, 10)
-            (goalx, goaly) = planning.sample2D(10, 10)
             #piano start and goal must be on the ground, have no rotation
-            start = (startx, starty, 0.3, 1, 0, 0, 0)
-            goal = (goalx, goaly, 0.3, 1, 0, 0, 0)
-            startCollides = planning.collides(start[0:3], planning.quatToMatrix(start[3],start[4],start[5],start[6]))
-            goalCollides = planning.collides(goal[0:3], planning.quatToMatrix(goal[3],goal[4],goal[5],goal[6]))
-            plt.plot(startx,starty,'r.',markersize=5)
-            plt.plot(goalx,goaly,'b.',markersize=5)
-            if goalCollides or startCollides:
+            start = (startx, starty, 0.4, 1, 0, 0, 0)
+            startCollides = planning.collides(start[0:3], planning.quatToMatrix(start[6], start[3],start[4],start[5]))
+            if startCollides:
+              #  plt.plot(startx, starty, 'g.')
                 continue
             else:
                 startList.append(start)
-                goalList.append(goal)
+                plt.plot(startx, starty, 'r.')
                 i+=1
-            
+    i=0            
+    while(i<50):
+            print("adding "+str(i)+"th goal point")    
+            (goalx, goaly) = planning.sample2D(10, 10)    
+            goal = (goalx, goaly, 0.4, 1, 0, 0, 0)
+            goalCollides = planning.collides(goal[0:3], planning.quatToMatrix(goal[6], goal[3],goal[4],goal[5]))
+            if goalCollides:
+             #   plt.plot(goalx, goaly, 'g.')
+                continue
+            else:
+                goalList.append(goal)
+                print "plotting {}, {}".format(goalx, goaly)
+                plt.plot(goalx, goaly, 'b.')
+                i=i+1
+    print "len startlist = {} len goallist = {}".format(len(startList), len(startList))
+    for k in range(0,50):
+            print "start: {}, {}   goal: {}, {}".format(startList[k][0], startList[k][1], goalList[k][0], goalList[k][1])
+         #   plt.plot(startList[k][0],startList[k][1],'r.',markersize=5)
+         #   plt.plot(goalList[k][0],goalList[k],[1],'b.',markersize=5)
+    plt.xlabel("x")
+    plt.ylabel("y")
+    plt.xlim([0,10])
+    plt.ylim([0,10])
+    plt.title("Randomized Start (red) and Goal (blue) Configurations")
+    plt.show()
+    #runs through everything
     while nnodes<=maxNodes:
         if not prmstar:
             filenameString="PRM_N="+str(nnodes)+"_data.txt"
@@ -105,8 +128,10 @@ def main():
         prm_quals = []
         print "Starting to build PRM"
         pianoNodes, pianoAdjacency, pianoDistances,collisions = PRM.PRMPiano(nnodes,pianoNodes, pianoAdjacency, pianoDistances,prmstar)
-        buildCollideFile.write(str(nnodes)+'\t'+str(collisions)+'\n')
-        buildingCollisionChecks.append(collisions)
+        PRM.PRM2Dshow((pianoNodes[:50]),(pianoAdjacency[:50]))
+        plt.show()
+        #buildCollideFile.write(str(nnodes)+'\t'+str(collisions)+'\n')
+        #buildingCollisionChecks.append(collisions)
         i = 0
         runningCollisionChecks.append(0)
         #run 50 trials
@@ -124,24 +149,28 @@ def main():
             if firstSolved[i] is -1:
                 firstSolved[i]=nnodes
             prm_quals.append(final_dist)
-            prm_file.write(str(runningCollisionChecks[len(runningCollisionChecks)-1]) + '\t' + str(final_dist) + '\n ')
+            #prm_file.write(str(runningCollisionChecks[len(runningCollisionChecks)-1]) + '\t' + str(final_dist) + '\n ')
             i += 1
-        nnodes=nnodes+nodeIncrement    
-        for k in range(0,50):
-            plt.plot(startList[k][0],startList[k][1],'r.',markersize=5)
-            plt.plot(goalList[k][0],goalList[k],[1],'b.',markersize=5)
-    plt.xlabel("x")
-    plt.ylabel("y")
-    plt.set_xlim([0,10])
-    plt.set_ylim([0,10])
-    plt.title("Randomized Start (red) and Goal (blue) Configurations")
-    plt.show()
+        nnodes=nnodes+nodeIncrement 
+    #plots random crap we want      
+    for k in range(0,50):
+        plt.plot(startList[k][0],startList[k][1],'r.',markersize=5)
+        plt.plot(goalList[k][0],goalList[k],[1],'b.',markersize=5)
+    #plt.xlabel("x")
+    #plt.ylabel("y")
+#    plt.set_xlim([0,10])
+#    plt.set_ylim([0,10])
+#    plt.title("Randomized Start (red) and Goal (blue) Configurations")
+#    plt.show()
     prm_file.close()
+    #plot the full PRM
+    PRM.PRM2Dshow((pianoNodes[:50]),(pianoAdjacency[:50]))
+    plt.show()
     #histogram of when these pairs were first solved
     plt.hist(firstSolved,bins=[-1,25,50,75,100,125,151])
     plt.title("Map Size for first solutions of start and goal pairs")
     plt.xlabel("number of nodes: -1 indicates no solution")
     plt.ylabel("number of pairs first solved then")
     plt.show()
-    print("Final Build Times for each interation:"+str(buildingCollisionChecks)) 
+    #print("Final Build Times for each interation:"+str(buildingCollisionChecks)) 
 main()
