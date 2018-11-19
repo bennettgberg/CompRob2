@@ -97,6 +97,7 @@ def RRTROS(start, goal, N, greedy):
                 print("greedy algorithm sampled x="+ str(x) +" y="+ str(y))
             else:
                 #only checks this point
+                (x,y)=sampleRRTPt(19,14,(-9,-7.5),polys)
                 print("testing with point x=" + str(x) +" y="+ str(y))            
             for j in range(0,i+1):
                 #gets distane  between current node and th sampled node
@@ -114,7 +115,7 @@ def RRTROS(start, goal, N, greedy):
                     if polys[polyIndex].contains(tempLine) or tempLine.crosses(polys[polyIndex]):
                         polyCheck=False
                         break  
-                #end collision check: if wecomment this out, be ure to leave polycheck true
+                #end collision check: if wecomment this out, be sure to leave polycheck true
 
                 #assigns a new minimum distance, saves the index of the closest point    
                 if polyCheck: 
@@ -140,7 +141,7 @@ def RRTROS(start, goal, N, greedy):
         carChildren[closej].append(i)
         #interfaces a few test controls with gazebo, returns the best one 
         print("sampling controls from Gazebo")   
-        (newConfig,newControls)=RRTSampleControls(carConfigs[j],(newx,newy))
+        (newConfig,newControls)=RRTSampleControls(carConfigs[j],(newx,newy), greedy)
         print("found valid controls: {}".format(newControls))
         addConfig(newConfig)
         addControls(newControls)
@@ -166,56 +167,66 @@ def ackermann_model_state(msg):
 #odd is 1 or 0, prevents it from veering
 #startConfig is a tuple (x,y,theta) for the car
 #goalLoc is (x,y)
-def RRTSampleControls(startConfig,goalLoc):
+def RRTSampleControls(startConfig,goalLoc, greedy):
 
+    #teleports robot to state closest to point sampled
     q = quaternion_from_euler(startConfig[2],0,0, axes='sxyz')
     q = geometry_msgs.msg.Quaternion(q[1],q[2],q[3],q[0])
     p = geometry_msgs.msg.Point(startConfig[0],startConfig[1],0)
     pose = geometry_msgs.msg.Pose(p, q)
     publisher.model_state_publisher(pose, model_name="ackermann_vehicle")
+    rospy.sleep(1)
 
     acc=12
     jerk=8
     minDist=float('inf')
     
-    #tries 5 controls
+    #tries 2 controls
     hitWall=False
     frontOrBack=1
+    derp=0
+    if not greedy: derp = 1
     while derp <2:
         #time to propagate this control
-        # timeStep=rand.rand()*.32+.1
+        timeStep=rand.rand()+.25
         #steering angle
-        steeringAngle=rand.rand()*0.78
-        if derp is 0:
-            steeringAngle=steeringAngle*(-1)
-        steeringAngleVelocity=4.0
+        steeringAngle=rand.rand()*2*0.78-0.78
+    #    if derp is 0:
+    #        steeringAngle=steeringAngle*(-1)
         #tangent velocity
         velocity=(rand.rand()+1)*frontOrBack
+        steeringAngleVelocity=rand.rand()*245 #245-np.abs(steeringAngle*100)
 
-        #fix the timestep to 1 second
-        timeStep=rand.rand()+.25
 
-        #Publishing controls to publisher
+        #Publishing controls to publisher and wait for fall
+        publisher.ackermann_publisher(velocity, steeringAngle, steeringAngleVelocity, acc, jerk, timeStep)
+        rospy.sleep(0.25)
+
         client = rospy.ServiceProxy('/gazebo/get_model_state', GetModelState)
+        # sub = rospy.Subscriber("/gazebo/model_states", ModelStates, ackermann_model_state)
+
         msg = client("ackermann_vehicle","")
         model_state_x = msg.pose.position.x
         model_state_y = msg.pose.position.y
         model_state_quaternion = [msg.pose.orientation.x, msg.pose.orientation.y, msg.pose.orientation.z, msg.pose.orientation.w]
         (model_state_roll,model_state_pitch,model_state_theta) = euler_from_quaternion(model_state_quaternion)
 
-        publisher.ackermann_publisher(velocity, steeringAngle, steeringAngleVelocity, acc, jerk, timeStep)
-        sub = rospy.Subscriber("/gazebo/model_states", ModelStates, ackermann_model_state)
-        print(model_state_x, model_state_y, model_state_theta)
-        (model_state_roll,model_state_pitch,model_state_theta) = euler_from_quaternion(model_state_quaternion)
-        if np.abs(model_state_roll)>.04 or np.abs(model_state_roll)>.04:
-            if derp is 0:
-                hitWall=True
-            elif hitWall:
-                frontOrBack=-1
-                derp=derp-1
+        print(model_state_x, model_state_y, model_state_roll, model_state_pitch, model_state_theta)
+
+        if np.abs(model_state_roll)>0.4 or np.abs(model_state_pitch)>0.4:
+            # if hitWall==False:
+            #     hitWall=True
+            # elif hitWall:
+            #     frontOrBack=-3
+            frontOrBack=-3
+            derp=derp-1
+            publisher.model_state_publisher(pose, model_name="ackermann_vehicle")
+            rospy.sleep(1)
+
         else:
-            newDist=planning.twoDdist((startConfig[0],startConfig[1]),(model_state_x, model_state_y))
-            if newDist<minDist:
+            frontOrBack=1
+            newDist=planning.twoDdist((model_state_x, model_state_y), (goalLoc[0],goalLoc[1]))
+            if not (greedy and newDist>minDist):
                 minDist=newDist
                 newConfig=(model_state_x,model_state_y,model_state_theta)
                 newControls=(velocity,steeringAngle,timeStep)
@@ -251,7 +262,9 @@ def RRT2DshowSolution(carSolutionConfigs):
     return(0)
 
 def main():
-    start=(-7.5,-7,.5*np.pi)
+    # start=(-7.5,-7,0.5*np.pi)
+    # start=(4.0,0.0,0.5*np.pi)
+    start=(8.0,0.0,0.5*np.pi)
     goal=[(10,6.5),(10,4.5),(8,4.5),(8,6.5)]
     (carConfigs, carControls, carChildren,carParents, goalIndex)=RRTROS(start, goal, 250, False)
     index=goalIndex
@@ -268,7 +281,6 @@ def main():
     global model_state_y
     global model_state_quaternion
 
-    rospy.init_node("ackermann_model_state_subscriber", anonymous=True)
     return 0
 
 if __name__ == "__main__":

@@ -15,11 +15,6 @@ import ackermann_controller
 
 def ackermann_publisher(speed, steering_angle, steering_angle_velocity, acceleration, jerk, time_step):
 	pub = rospy.Publisher("/ackermann_cmd", AckermannDrive, queue_size=10)
-	# rospy.init_node('ackermann_controller', anonymous=True)
-
-	rate = rospy.Rate(10.0) #float(1/time_step)) # 1/time_step Hz
-	print("hello")
-	rospy.sleep(0.5)
 
 	while not rospy.is_shutdown():
 		
@@ -38,10 +33,8 @@ def ackermann_publisher(speed, steering_angle, steering_angle_velocity, accelera
 		init_time = time.time()
 		while time.time() < init_time + time_step:
 			pub.publish(state)
-			rospy.loginfo(state)
-		#rospy.sleep(1) #time_step) -bg3
-#		rate.sleep()
-#
+		rospy.loginfo(state)
+
 		state.steering_angle = 0
 		state.steering_angle_velocity=0
 		state.speed = 0
@@ -49,10 +42,8 @@ def ackermann_publisher(speed, steering_angle, steering_angle_velocity, accelera
 		state.jerk = 0
 		
 		rospy.loginfo(state)
-		print("resetting control state")
+		print("resetting control state to 0")
 		pub.publish(state)
-		print("state published, sleeping for {}".format(rate.remaining()))
-		rate.sleep()
 		break
 	return
 
