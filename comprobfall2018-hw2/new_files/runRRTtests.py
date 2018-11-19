@@ -260,7 +260,8 @@ def main():
     quals = []
     greedy_quals = []
     #start=(-7.5,-7,.5*np.pi)
-    start=[9.0, 4.0, 0.5*np.pi] #Just to test to make sure it's working
+    start=(8.0,2.0,0.5*np.pi)
+    # start=[9.0, 4.0, 0.5*np.pi] #Just to test to make sure it's working
     goal=[(10,6.5),(10,4.5),(8,4.5),(8,6.5)]
     greedy = False
     if len(sys.argv) > 1:

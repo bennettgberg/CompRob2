@@ -139,10 +139,8 @@ def RRTROS(start, goal, N, greedy):
                     break        
                 minD=dist
                 closej=j
-                print("closej1 = " +str(closej))
                 (newx,newy) = (x, y)
             closej=j 
-            print("closej1 = " +str(closej))
             (newx,newy) = (x, y)
             if newx == None:
                 (x,y)=sampleRRTPt(19,14,(-9,-7.5),polys)
@@ -165,8 +163,6 @@ def RRTROS(start, goal, N, greedy):
             goalPt=geo.Point(newConfig[0],newConfig[1])
             if goalRegionPoly.contains(goalPt):
                 goalIndex=i+1
-                print("i = " +str(i))
-                print("closej 2 = " +str(closej))
                 goalFound=True
                 print("found point in goal region")
                 break
@@ -208,9 +204,9 @@ def RRTSampleControls(startConfig, sampleLoc, greedy):
         steeringAngleVelocity=rand.rand()*245 #245-np.abs(steeringAngle*100)
 
 
-        #Publishing controls to publisher and wait for fall
+        #Publishing controls to publisher
         publisher.ackermann_publisher(velocity, steeringAngle, steeringAngleVelocity, acc, jerk, timeStep)
-        rospy.sleep(0.25)
+        rospy.sleep(0.5)
 
         client = rospy.ServiceProxy('/gazebo/get_model_state', GetModelState)
         # sub = rospy.Subscriber("/gazebo/model_states", ModelStates, ackermann_model_state)
