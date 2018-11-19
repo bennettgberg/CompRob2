@@ -72,6 +72,7 @@ def RRTROS(start, goal, N, greedy):
     totalDistanceTested=0
     goalFound=False
     goalIndex=None
+    ind
     #Outer loop: builds N nodes
     while i < N:          
         x=-1
@@ -99,6 +100,7 @@ def RRTROS(start, goal, N, greedy):
                 #only checks old point
                 print("testing with point x=" + str(x) +" y="+ str(y))            
             for j in range(0,i+1):
+                ind=j
                 #gets distane  between current node and th sampled node
                 dist = planning.twoDdist((carConfigs[j][0],carConfigs[j][1]),(x,y))   
                 #sees if it's close enough to even be worth checking
@@ -140,7 +142,7 @@ def RRTROS(start, goal, N, greedy):
         carChildren[closej].append(i)
         #interfaces a few test controls with gazebo, returns the best one 
         # print("sampling controls from Gazebo")   
-        (newConfig,newControls)=RRTSampleControls(carConfigs[j],(newx,newy), greedy)
+        (newConfig,newControls)=RRTSampleControls(carConfigs[ind],(newx,newy), greedy)
         totalDistanceTested=totalDistanceTested+newControls[0]*newControls[2]
         # print("found valid controls: {}".format(newControls))
         addConfig(newConfig)
@@ -149,7 +151,7 @@ def RRTROS(start, goal, N, greedy):
             print("checking if a goal node was found")
             goalPt=geo.Point(newConfig[0],newConfig[1])
             if goalRegionPoly.contains(goalPt):
-                goalIndex=j
+                goalIndex=ind
                 goalFound=True
                 print("found point in goal region")
                 break
