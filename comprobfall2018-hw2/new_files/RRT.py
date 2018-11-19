@@ -12,6 +12,7 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as ptc
 # import matplotlib.axes.Axes as axes
 import math
+import sys
 
 import rospy
 import publisher
@@ -72,7 +73,6 @@ def RRTROS(start, goal, N, greedy):
     totalDistanceTested=0
     goalFound=False
     goalIndex=None
-    ind
     #Outer loop: builds N nodes
     while i < N:          
         x=-1
@@ -99,8 +99,7 @@ def RRTROS(start, goal, N, greedy):
             else:
                 #only checks old point
                 print("testing with point x=" + str(x) +" y="+ str(y))            
-            for j in range(0,i+1):
-                ind=j
+            for j in range(0,i):
                 #gets distane  between current node and th sampled node
                 dist = planning.twoDdist((carConfigs[j][0],carConfigs[j][1]),(x,y))   
                 #sees if it's close enough to even be worth checking
@@ -111,26 +110,40 @@ def RRTROS(start, goal, N, greedy):
                 lineArgs=[(carConfigs[j][0],carConfigs[j][1]), (x,y)]
                 tempLine=geo.LineString(lineArgs) 
                 #if the line in question doesn't intesect the obstacle, it's good to go
-                polyCheck=True
-                for polyIndex in range(0,len(polys)):
-                    if polys[polyIndex].contains(tempLine) or tempLine.crosses(polys[polyIndex]):
-                        polyCheck=False
-                        break  
-                #end collision check: if wecomment this out, be sure to leave polycheck true
+                polyCheck=False
+            #     for polyIndex in range(0,len(polys)):
+            #         if polys[polyIndex].contains(tempLine) or tempLine.crosses(polys[polyIndex]):
+            #             polyCheck=False
+            #             break  
+            #     end collision check: if wecomment this out, be sure to leave polycheck true
 
-                #assigns a new minimum distance, saves the index of the closest point    
-                if polyCheck: 
-                        #too close to existing nodes: we bias it to move away
-                        if dist<.25:
-                            newx=None
-                            newy=None
-                            minD=float('inf')
-                            break
-                        #else: adds it to the tree
-                        minD=dist
-                        closej=j 
-                        (newx,newy) = (x, y)
-            #if no valid straight line paths were found, kills it and runs again
+                # assigns a new minimum distance, saves the index of the closest point    
+            #     if polyCheck: 
+            #             #too close to existing nodes: we bias it to move away
+            #             if dist<.25:
+            #                 newx=None
+            #                 newy=None
+            #                 minD=float('inf')
+            #                 break
+            #             #else: adds it to the tree
+            #             minD=dist
+            #             closej=j 
+            #             print("closej1 = " +str(closej))
+            #             (newx,newy) = (x, y)
+            # if no valid straight line paths were found, kills it and runs again
+                
+                if dist<.25:
+                    newx=None
+                    newy=None
+                    minD=float('inf')
+                    break        
+                minD=dist
+                closej=j
+                print("closej1 = " +str(closej))
+                (newx,newy) = (x, y)
+            closej=j 
+            print("closej1 = " +str(closej))
+            (newx,newy) = (x, y)
             if newx == None:
                 (x,y)=sampleRRTPt(19,14,(-9,-7.5),polys)
             else:
@@ -142,7 +155,7 @@ def RRTROS(start, goal, N, greedy):
         carChildren[closej].append(i)
         #interfaces a few test controls with gazebo, returns the best one 
         # print("sampling controls from Gazebo")   
-        (newConfig,newControls)=RRTSampleControls(carConfigs[ind],(newx,newy), greedy)
+        (newConfig,newControls)=RRTSampleControls(carConfigs[closej],(newx,newy), greedy)
         totalDistanceTested=totalDistanceTested+newControls[0]*newControls[2]
         # print("found valid controls: {}".format(newControls))
         addConfig(newConfig)
@@ -151,10 +164,13 @@ def RRTROS(start, goal, N, greedy):
             print("checking if a goal node was found")
             goalPt=geo.Point(newConfig[0],newConfig[1])
             if goalRegionPoly.contains(goalPt):
-                goalIndex=ind
+                goalIndex=i+1
+                print("i = " +str(i))
+                print("closej 2 = " +str(closej))
                 goalFound=True
                 print("found point in goal region")
                 break
+        if goalFound: break
         i += 1
     return carConfigs, carControls, carChildren,carParents, goalIndex, totalDistanceTested
 

@@ -271,10 +271,10 @@ def main():
     else:
         outfile = open("time_v_qual.txt", "w")
     for i in range(25):
-      #  init_time = time.time()
+        init_time = time.time()
         #*Add distances variable!!!!!!!!!!!!!
         (carConfigs, carControls, carChildren,carParents, goalIndex, tottime)=RRT.RRTROS(start, goal, 250, greedy)
-      #  tottime = time.time()-init_time
+        tottime = time.time()-init_time
         index=goalIndex
         solution=[]
         #traces up the tree and appends every node as it is found
@@ -283,9 +283,13 @@ def main():
         totD = 0
         while(index is not 0):
             # solution.insert(0,carConfigs[index])
-            index=carParents[index]
-            totD=totD+carControls[index][2]*carControls[index][0]
-            print(index, carParents[index], totD, carControls[index][2]*carControls[index][0])
+            index=carParents[index-1]
+            totD=totD+carControls[index-1][2]*carControls[index-1][0]
+        # tottime = 0
+        # for j in range(len(carControls)):
+        #     tottime += carControls[j][2]*carControls[j][0]
+        print("scatter data = {}, {}".format(tottime, totD))
+
         outfile.write( str(tottime) + " \t" + str(totD) + "\n")
         #inserts the start node
         # solution.insert(0,carConfigs[0])
@@ -295,7 +299,7 @@ def main():
         global model_state_x
         global model_state_y
         global model_state_quaternion
-
+        print "itereration = {}".format(i)
     outfile.close()
     return 0
 
