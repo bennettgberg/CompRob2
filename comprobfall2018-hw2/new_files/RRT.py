@@ -155,7 +155,7 @@ def RRTROS(start, goal, N, greedy):
                 print("found point in goal region")
                 break
         i += 1
-    return carConfigs, carControls, carChildren,carParents, goalIndex,totalDistanceTested
+    return carConfigs, carControls, carChildren,carParents, goalIndex, totalDistanceTested
 
 #from the initial state, samples X controls and returns the set of controls that gets the closest, as well as the final location
 #odd is 1 or 0, prevents it from veering
@@ -224,7 +224,7 @@ def RRTSampleControls(startConfig, sampleLoc, greedy):
             print("derp = {}, distance = {}".format(derp, newDist))
         derp=derp+1
 
-        if derp=1:
+        if derp==1:
             publisher.model_state_publisher(pose, model_name="ackermann_vehicle")
             rospy.sleep(1)
     return newConfig,newControls
@@ -263,7 +263,7 @@ def main():
     start=(8.0,0.0,0.5*np.pi)
     goal=[(10,6.5),(10,4.5),(8,4.5),(8,6.5)]
 
-    (carConfigs, carControls, carChildren,carParents, goalIndex)=RRTROS(start, goal, 250, True)
+    (carConfigs, carControls, carChildren,carParents, goalIndex, totalDistanceTested)=RRTROS(start, goal, 250, True)
     index=goalIndex
     solution=[]
     #traces up the tree and appends every node as it is found
