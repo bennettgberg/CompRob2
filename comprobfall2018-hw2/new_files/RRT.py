@@ -170,12 +170,12 @@ def ackermann_model_state(msg):
 def RRTSampleControls(startConfig,goalLoc, greedy):
 
     #teleports robot to state closest to point sampled
-    q = quaternion_from_euler(startConfig[2],0,0, axes='sxyz')
-    q = geometry_msgs.msg.Quaternion(q[1],q[2],q[3],q[0])
+    q = quaternion_from_euler(0,0,startConfig[2], axes='sxyz')
+    q = geometry_msgs.msg.Quaternion(*q)
     p = geometry_msgs.msg.Point(startConfig[0],startConfig[1],0)
     pose = geometry_msgs.msg.Pose(p, q)
     publisher.model_state_publisher(pose, model_name="ackermann_vehicle")
-    rospy.sleep(1)
+    rospy.sleep(0.5)
 
     acc=12
     jerk=8
@@ -266,6 +266,7 @@ def main():
     # start=(4.0,0.0,0.5*np.pi)
     start=(8.0,0.0,0.5*np.pi)
     goal=[(10,6.5),(10,4.5),(8,4.5),(8,6.5)]
+
     (carConfigs, carControls, carChildren,carParents, goalIndex)=RRTROS(start, goal, 250, False)
     index=goalIndex
     solution=[]
