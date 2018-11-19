@@ -162,15 +162,19 @@ def main():
 #    plt.set_ylim([0,10])
 #    plt.title("Randomized Start (red) and Goal (blue) Configurations")
 #    plt.show()
-    prm_file.close()
+    #prm_file.close()
     #plot the full PRM
-    PRM.PRM2Dshow((pianoNodes[:50]),(pianoAdjacency[:50]))
-    plt.show()
+    #PRM.PRM2Dshow((pianoNodes[:50]),(pianoAdjacency[:50]))
+    #plt.show()
     #histogram of when these pairs were first solved
-    plt.hist(firstSolved,bins=[-1,25,50,75,100,125,151])
-    plt.title("Map Size for first solutions of start and goal pairs")
-    plt.xlabel("number of nodes: -1 indicates no solution")
-    plt.ylabel("number of pairs first solved then")
-    plt.show()
+    filenameString="prm_first_solved_data.txt"
+    prm_hist_file = open(filenameString, "w")
+    for i in range(0,50):
+            
+    #plt.hist(firstSolved,bins=[-1,25,50,75,100,125,151])
+    #plt.title("Map Size for first solutions of start and goal pairs")
+    #plt.xlabel("number of nodes: -1 indicates no solution")
+    #plt.ylabel("number of pairs first solved then")
+    #plt.show()
     #print("Final Build Times for each interation:"+str(buildingCollisionChecks)) 
 main()
