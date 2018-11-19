@@ -68,7 +68,6 @@ def RRTROS(start, goal, N, greedy):
     polys.append(geo.Polygon(vertices))
     #adds initial conditions
     addConfig((start[0],start[1],start[2]))
-    addControls(None)    
     i = 0 
     totalDistanceTested=0
     goalFound=False

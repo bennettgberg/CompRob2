@@ -5,13 +5,14 @@ Created on Sat Nov 10 16:49:08 2018
 @author: Mike Nitzsche
 """
 import numpy.random as rand
-import planning
+# import planning
 import numpy as np
 import shapely.geometry as geo
 import matplotlib.pyplot as plt
 import matplotlib.patches as ptc
 # import matplotlib.axes.Axes as axes
 import math
+import sys
 
 import rospy
 import publisher
@@ -259,7 +260,7 @@ def main():
     quals = []
     greedy_quals = []
     #start=(-7.5,-7,.5*np.pi)
-    start=[(10,6.5),(10,4.5),(8,4.5),(8,6.5)] #Just to test to make sure it's working
+    start=[9.0, 4.0, 0.5*np.pi] #Just to test to make sure it's working
     goal=[(10,6.5),(10,4.5),(8,4.5),(8,6.5)]
     greedy = False
     if len(sys.argv) > 1:
@@ -281,22 +282,21 @@ def main():
         #goes back up the tree all the way to the first part
         totD = 0
         while(index is not 0):
-            solution.insert(0,carConfigs[index])
-            totD += distances[index]
+            # solution.insert(0,carConfigs[index])
             index=carParents[index]
             totD=totD+carControls[index][2]*carControls[index][0]
+            print(index, carParents[index], totD, carControls[index][2]*carControls[index][0])
         outfile.write( str(tottime) + " \t" + str(totD) + "\n")
         #inserts the start node
-        solution.insert(0,carConfigs[0])
+        # solution.insert(0,carConfigs[0])
         #visualizes solution    
-        RRT2DshowSolution(solution)
+        # RRT2DshowSolution(solution)
 
         global model_state_x
         global model_state_y
         global model_state_quaternion
 
-        rospy.init_node("ackermann_model_state_subscriber", anonymous=True)
-        outfile.close()
+    outfile.close()
     return 0
 
 if __name__ == "__main__":
