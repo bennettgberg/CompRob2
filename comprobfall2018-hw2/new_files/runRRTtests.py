@@ -266,10 +266,10 @@ def main():
         else:
             outfile = open("time_v_qual.txt", "w")
         for i in range(25):
-            init_time = time.time()
+          #  init_time = time.time()
             #*Add distances variable!!!!!!!!!!!!!
-            (carConfigs, carControls, carChildren,carParents, goalIndex, distances)=RRT.RRTROS(start, goal, 250, greedy)
-            tottime = time.time()-init_time
+            (carConfigs, carControls, carChildren,carParents, goalIndex, tottime)=RRT.RRTROS(start, goal, 250, greedy)
+          #  tottime = time.time()-init_time
             index=goalIndex
             solution=[]
             #traces up the tree and appends every node as it is found
@@ -280,6 +280,7 @@ def main():
                 solution.insert(0,carConfigs[index])
                 totD += distances[index]
                 index=carParents[index]
+                totD=totD+carControls[index][2]*carControls[index][0]
             outfile.write( str(tottime) + " \t" + str(totD) + "\n")
 	    #inserts the start node
 	    solution.insert(0,carConfigs[0])
