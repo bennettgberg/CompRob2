@@ -90,14 +90,13 @@ def RRTROS(start, goal, N, greedy):
         while True:
             if greedy:          
                 #samples two new points, compares to old sample and picks the one closest to the goal
-                for q in range(0,1):
+                for q in range(0,2):
                     (x1,y1)=sampleRRTPt(19,14,(-9,-7.5),polys)
-                    if planning.twoDdist((x1,y1),(10,8.5))<planning.twoDdist((x,y),(10,6.5)):
+                    if planning.twoDdist((x1,y1),(10,8.5))<planning.twoDdist((x,y),(10,8.5)):
                         (x,y)=(x1,y1)
                 print("greedy algorithm sampled x="+ str(x) +" y="+ str(y))
             else:
-                #only checks this point
-                (x,y)=sampleRRTPt(19,14,(-9,-7.5),polys)
+                #only checks old point
                 print("testing with point x=" + str(x) +" y="+ str(y))            
             for j in range(0,i+1):
                 #gets distane  between current node and th sampled node
@@ -129,20 +128,20 @@ def RRTROS(start, goal, N, greedy):
                         minD=dist
                         closej=j 
                         (newx,newy) = (x, y)
-            #if no valid straight line paths were found, kills it             
+            #if no valid straight line paths were found, kills it and runs again
             if newx == None:
                 (x,y)=sampleRRTPt(19,14,(-9,-7.5),polys)
             else:
                 break
-            print("Confirmed Valid Point x="+ str(x) +" y="+ str(y))
+            # print("Confirmed Valid Point x="+ str(x) +" y="+ str(y))
         #adds a parent link from the closest node to the new node
         addParent(closej)
         #adds this node as a child for row closej
         carChildren[closej].append(i)
         #interfaces a few test controls with gazebo, returns the best one 
-        print("sampling controls from Gazebo")   
+        # print("sampling controls from Gazebo")   
         (newConfig,newControls)=RRTSampleControls(carConfigs[j],(newx,newy), greedy)
-        print("found valid controls: {}".format(newControls))
+        # print("found valid controls: {}".format(newControls))
         addConfig(newConfig)
         addControls(newControls)
         if not goalFound:
@@ -155,19 +154,12 @@ def RRTROS(start, goal, N, greedy):
                 break
         i += 1
     return carConfigs, carControls, carChildren,carParents, goalIndex
- 
-def ackermann_model_state(msg):
-
-    model_state_x = msg.pose[2].position.x
-    model_state_y = msg.pose[2].position.y
-    model_state_quaternion = [msg.pose[2].orientation.x, msg.pose[2].orientation.y, msg.pose[2].orientation.z, msg.pose[2].orientation.w]
-    # print(model_state_x, model_state_y, model_state_quaternion)
 
 #from the initial state, samples X controls and returns the set of controls that gets the closest, as well as the final location
 #odd is 1 or 0, prevents it from veering
 #startConfig is a tuple (x,y,theta) for the car
-#goalLoc is (x,y)
-def RRTSampleControls(startConfig,goalLoc, greedy):
+#sampleLoc is (x,y)
+def RRTSampleControls(startConfig, sampleLoc, greedy):
 
     #teleports robot to state closest to point sampled
     q = quaternion_from_euler(0,0,startConfig[2], axes='sxyz')
@@ -185,7 +177,6 @@ def RRTSampleControls(startConfig,goalLoc, greedy):
     hitWall=False
     frontOrBack=1
     derp=0
-    if not greedy: derp = 1
     while derp <2:
         #time to propagate this control
         timeStep=rand.rand()+.25
@@ -220,17 +211,19 @@ def RRTSampleControls(startConfig,goalLoc, greedy):
             #     frontOrBack=-3
             frontOrBack=-3
             derp=derp-1
-            publisher.model_state_publisher(pose, model_name="ackermann_vehicle")
-            rospy.sleep(1)
 
         else:
             frontOrBack=1
-            newDist=planning.twoDdist((model_state_x, model_state_y), (goalLoc[0],goalLoc[1]))
-            if not (greedy and newDist>minDist):
+            newDist=planning.twoDdist((model_state_x, model_state_y), (sampleLoc[0],sampleLoc[1]))
+            if newDist<minDist:
                 minDist=newDist
                 newConfig=(model_state_x,model_state_y,model_state_theta)
                 newControls=(velocity,steeringAngle,timeStep)
         derp=derp+1
+
+        print("derp = {}, distance = {}".format(derp, newDist))
+        publisher.model_state_publisher(pose, model_name="ackermann_vehicle")
+        rospy.sleep(1)
     return newConfig,newControls
 
 

@@ -41,7 +41,7 @@ def ackermann_publisher(speed, steering_angle, steering_angle_velocity, accelera
 		state.acceleration = 0
 		state.jerk = 0
 		
-		rospy.loginfo(state)
+		# rospy.loginfo(state)
 		print("resetting control state to 0")
 		pub.publish(state)
 		break
@@ -62,7 +62,7 @@ def model_state_publisher(pose, twist=geometry_msgs.msg.Twist(geometry_msgs.msg.
 		# model_state.pose.orientation.y = tf.transformations.quaternion_from_euler(0,0,steering_angle)[1]
 		# model_state.pose.orientation.z = tf.transformations.quaternion_from_euler(0,0,steering_angle)[2]
 		# model_state.pose.orientation.w = tf.transformations.quaternion_from_euler(0,0,steering_angle)[3]
-		rospy.loginfo(model_state)
+		# rospy.loginfo(model_state)
 		pub.publish(model_state)
 		rate.sleep()
 		break
