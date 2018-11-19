@@ -70,6 +70,7 @@ def RRTROS(start, goal, N, greedy):
     addConfig((start[0],start[1],start[2]))
     addControls(None)    
     i = 0 
+    totalDistanceTested=0
     goalFound=False
     goalIndex=None
     #Outer loop: builds N nodes
@@ -141,6 +142,7 @@ def RRTROS(start, goal, N, greedy):
         #interfaces a few test controls with gazebo, returns the best one 
         # print("sampling controls from Gazebo")   
         (newConfig,newControls)=RRTSampleControls(carConfigs[j],(newx,newy), greedy)
+        totalDistanceTested=totalDistanceTested+newControls[0]*newControls[2]
         # print("found valid controls: {}".format(newControls))
         addConfig(newConfig)
         addControls(newControls)
@@ -153,7 +155,7 @@ def RRTROS(start, goal, N, greedy):
                 print("found point in goal region")
                 break
         i += 1
-    return carConfigs, carControls, carChildren,carParents, goalIndex
+    return carConfigs, carControls, carChildren,carParents, goalIndex,totalDistanceTested
 
 #from the initial state, samples X controls and returns the set of controls that gets the closest, as well as the final location
 #odd is 1 or 0, prevents it from veering
@@ -219,9 +221,9 @@ def RRTSampleControls(startConfig, sampleLoc, greedy):
                 minDist=newDist
                 newConfig=(model_state_x,model_state_y,model_state_theta)
                 newControls=(velocity,steeringAngle,timeStep)
+            print("derp = {}, distance = {}".format(derp, newDist))
         derp=derp+1
 
-        print("derp = {}, distance = {}".format(derp, newDist))
         publisher.model_state_publisher(pose, model_name="ackermann_vehicle")
         rospy.sleep(1)
     return newConfig,newControls
