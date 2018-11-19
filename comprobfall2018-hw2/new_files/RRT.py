@@ -177,22 +177,23 @@ def RRTSampleControls(startConfig,goalLoc):
     acc=12
     jerk=8
     minDist=float('inf')
-
+    
     #tries 5 controls
-    for derp in range(0,5):
+    hitWall=False
+    frontOrBack=1
+    while derp <2:
         #time to propagate this control
         # timeStep=rand.rand()*.32+.1
         #steering angle
         steeringAngle=rand.rand()*0.78
-
+        if derp is 0:
+            steeringAngle=steeringAngle*(-1)
         steeringAngleVelocity=4.0
         #tangent velocity
-        velocity=rand.rand()*1.0+1.5
+        velocity=(rand.rand()+1)*frontOrBack
 
         #fix the timestep to 1 second
-        timeStep=1.0
-
-
+        timeStep=rand.rand()+.25
 
         #Publishing controls to publisher
         client = rospy.ServiceProxy('/gazebo/get_model_state', GetModelState)
@@ -204,14 +205,21 @@ def RRTSampleControls(startConfig,goalLoc):
 
         publisher.ackermann_publisher(velocity, steeringAngle, steeringAngleVelocity, acc, jerk, timeStep)
         sub = rospy.Subscriber("/gazebo/model_states", ModelStates, ackermann_model_state)
-        rospy.sleep(1)
-
         print(model_state_x, model_state_y, model_state_theta)
-        newDist=planning.twoDdist((startConfig[0],startConfig[1]),(model_state_x, model_state_y))
-        if newDist<minDist:
-            minDist=newDist
-            newConfig=(model_state_x,model_state_y,model_state_theta)
-            newControls=(velocity,steeringAngle,timeStep)
+        (model_state_roll,model_state_pitch,model_state_theta) = euler_from_quaternion(model_state_quaternion)
+        if np.abs(model_state_roll)>.04 or np.abs(model_state_roll)>.04:
+            if derp is 0:
+                hitWall=True
+            elif hitWall:
+                frontOrBack=-1
+                derp=derp-1
+        else:
+            newDist=planning.twoDdist((startConfig[0],startConfig[1]),(model_state_x, model_state_y))
+            if newDist<minDist:
+                minDist=newDist
+                newConfig=(model_state_x,model_state_y,model_state_theta)
+                newControls=(velocity,steeringAngle,timeStep)
+        derp=derp+1
     return newConfig,newControls
 
 
