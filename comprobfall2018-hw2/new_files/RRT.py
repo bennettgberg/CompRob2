@@ -181,8 +181,6 @@ def RRTSampleControls(startConfig, sampleLoc, greedy):
     q = geometry_msgs.msg.Quaternion(*q)
     p = geometry_msgs.msg.Point(startConfig[0],startConfig[1],0)
     pose = geometry_msgs.msg.Pose(p, q)
-    publisher.model_state_publisher(pose, model_name="ackermann_vehicle")
-    rospy.sleep(0.5)
 
     acc=12
     jerk=8
@@ -193,6 +191,11 @@ def RRTSampleControls(startConfig, sampleLoc, greedy):
     frontOrBack=1
     derp=0
     while derp <2:
+
+        publisher.model_state_publisher(pose, model_name="ackermann_vehicle")
+        rospy.sleep(0.5)
+
+
         #time to propagate this control
         timeStep=rand.rand()+.25
         #steering angle
@@ -237,9 +240,6 @@ def RRTSampleControls(startConfig, sampleLoc, greedy):
             print("derp = {}, distance = {}".format(derp, newDist))
         derp=derp+1
 
-        if derp==1:
-            publisher.model_state_publisher(pose, model_name="ackermann_vehicle")
-            rospy.sleep(1)
     return newConfig,newControls
 
 
