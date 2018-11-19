@@ -92,7 +92,7 @@ def RRTROS(start, goal, N, greedy):
                 #samples two new points, compares to old sample and picks the one closest to the goal
                 for q in range(0,1):
                     (x1,y1)=sampleRRTPt(19,14,(-9,-7.5),polys)
-                    if planning.twoDdist((x1,y1),(10,8.5))<plannng.twoDdist((x,y),(10,6.5)):
+                    if planning.twoDdist((x1,y1),(10,8.5))<planning.twoDdist((x,y),(10,6.5)):
                         (x,y)=(x1,y1)
                 print("greedy algorithm sampled x="+ str(x) +" y="+ str(y))
             else:
@@ -267,7 +267,7 @@ def main():
     start=(8.0,0.0,0.5*np.pi)
     goal=[(10,6.5),(10,4.5),(8,4.5),(8,6.5)]
 
-    (carConfigs, carControls, carChildren,carParents, goalIndex)=RRTROS(start, goal, 250, False)
+    (carConfigs, carControls, carChildren,carParents, goalIndex)=RRTROS(start, goal, 250, True)
     index=goalIndex
     solution=[]
     #traces up the tree and appends every node as it is found
