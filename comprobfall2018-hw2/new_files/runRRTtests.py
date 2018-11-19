@@ -19,6 +19,8 @@ from gazebo_msgs.srv import SetModelState, GetModelState
 from gazebo_msgs.msg import ModelState, ModelStates
 import geometry_msgs.msg
 from tf.transformations import euler_from_quaternion, quaternion_from_euler
+import time
+import RRT
 
 def sampleRRTPt(xmax,ymax,shift,polys):
     #gets a valid X and Y in the boundary of the actual world, eliminates points that are obviously inside obstacles
@@ -138,6 +140,7 @@ def RRTROS(start, goal, N, greedy):
         addParent(closej)
         #adds this node as a child for row closej
         carChildren[closej].append(i)
+        child_dists[closej].append(dist)
         #interfaces a few test controls with gazebo, returns the best one 
         print("sampling controls from Gazebo")   
         (newConfig,newControls)=RRTSampleControls(carConfigs[j],(newx,newy))
@@ -251,19 +254,33 @@ def RRT2DshowSolution(carSolutionConfigs):
     return(0)
 
 def main():
-    for i in range(25):
-        for greedy in [True, False]:
-            start=(-7.5,-7,.5*np.pi)
-            goal=[(10,6.5),(10,4.5),(8,4.5),(8,6.5)]
-            (carConfigs, carControls, carChildren,carParents, goalIndex)=RRTROS(start, goal, 250, greedy)
+    times = []
+    greedy_times = []
+    quals = []
+    greedy_quals = []
+    start=(-7.5,-7,.5*np.pi)
+    goal=[(10,6.5),(10,4.5),(8,4.5),(8,6.5)]
+    for greedy in [True, False]:
+        if greedy:
+            outfile = open("time_v_qual_greedy.txt", "w")
+        else:
+            outfile = open("time_v_qual.txt", "w")
+        for i in range(25):
+            init_time = time.time()
+            #*Add distances variable!!!!!!!!!!!!!
+            (carConfigs, carControls, carChildren,carParents, goalIndex, distances)=RRT.RRTROS(start, goal, 250, greedy)
+            tottime = time.time()-init_time
             index=goalIndex
             solution=[]
             #traces up the tree and appends every node as it is found
             print("Solution found, tracing back through the tree")
 	    #goes back up the tree all the way to the first part
+            totD = 0
             while(index is not 0):
                 solution.insert(0,carConfigs[index])
+                totD += distances[index]
                 index=carParents[index]
+            outfile.write( str(tottime) + " \t" + str(totD) + "\n")
 	    #inserts the start node
 	    solution.insert(0,carConfigs[0])
             #visualizes solution    
@@ -274,6 +291,7 @@ def main():
             global model_state_quaternion
 
             rospy.init_node("ackermann_model_state_subscriber", anonymous=True)
+        outfile.close()
     return 0
 
 if __name__ == "__main__":
